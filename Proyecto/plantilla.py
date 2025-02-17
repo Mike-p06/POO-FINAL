@@ -8,7 +8,7 @@ from tkcalendar import Calendar
 
 class Participantes:
     # nombre de la base de datos  y ruta 
-    path = r'.'
+    path = r'C:\Users\mikep\Documents\GitHub\POO-FINAL\Proyecto'
     db_name = path + r'/Participantes.db'
     actualiza = None
     def __init__(self, master=None):
