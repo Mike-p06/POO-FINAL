@@ -155,7 +155,7 @@ class Participantes:
         self.style.configure("estilo.Treeview.Heading", background='Azure', font=('Calibri Light', 10,'bold')) 
         self.style.layout("estilo.Treeview", [('estilo.Treeview.treearea', {'sticky': 'nswe'})])
 
-        self.treeDatos = ttk.Treeview(self.win, height = 10, style="estilo.Treeview")
+        self.treeDatos = ttk.Treeview(self.win, height = 10, style="estilo.Treeview", selectmode="extended")
         self.treeDatos.place(x=380, y=10, height=340, width = 500)
 
        # Etiquetas de las columnas
@@ -217,6 +217,7 @@ class Participantes:
         self.entryCelular.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][2])
         self.entryEntidad.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][3])
         self.entryFecha.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][4])
+        self.entryCiudad.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][5])
               
     def limpia_Campos(self):
       pass
@@ -286,12 +287,12 @@ class Participantes:
             return
         
     def elimina_Registro(self, event=None):
-        '''Elimina un participante individualmente o un conjunto de participantes con confirmación'''
+        '''Elimina uno o varios participantes con confirmación'''
 
-        seleccionados = self.treeDatos.selection()  # Obtiene los registros seleccionados en la tabla
+        seleccionados = self.treeDatos.selection()  # Obtiene los registros seleccionados
 
         if not seleccionados:
-            mssg.showwarning("Advertencia", "Por favor seleccione al menos un participante para eliminar.")
+            mssg.showwarning("Advertencia", "Seleccione al menos un participante para eliminar.")
             return
 
         confirmacion = mssg.askyesno("Confirmación", f"¿Está seguro de que desea eliminar {len(seleccionados)} registro(s)?")
@@ -304,11 +305,10 @@ class Participantes:
             id_participante = self.treeDatos.item(item, "text")
 
             query = 'DELETE FROM t_participantes WHERE Id = ?'
-            resultado = self.run_Query(query, (id_participante,))
+            self.run_Query(query, (id_participante,))
 
-            if resultado is not None:
-                eliminados += 1
-                self.treeDatos.delete(item)  # Elimina el registro de la tabla visual
+            self.treeDatos.delete(item)  # Elimina el registro de la tabla visual
+            eliminados += 1
 
         if eliminados > 0:
             mssg.showinfo("Éxito", f"Se eliminaron {eliminados} registro(s) correctamente.")
@@ -317,7 +317,8 @@ class Participantes:
 
 
     def consulta_Registro(self, event=None):
-        '''Consulta un participante por su Id o NIT y carga los datos en la tabla'''
+        '''Consulta un participante por su Id y lo resalta en la tabla'''
+
         id_participante = self.entryId.get().strip()
 
         if not id_participante:
@@ -328,8 +329,24 @@ class Participantes:
         resultados = self.run_Query(query, (id_participante,))
 
         if resultados:
-            for row in resultados:
-                self.treeDatos.insert('', 'end', text=row[0], values=(row[1], row[2], row[3], row[4], row[5], row[6]))
+            encontrado = False
+
+            # **Buscar en la tabla si el ID ya está cargado**
+            for item in self.treeDatos.get_children():
+                id_actual = str(self.treeDatos.item(item, "text"))  # Convertimos a string para evitar errores
+
+                if id_actual == id_participante:
+                    self.treeDatos.selection_set(item)  # Selecciona el resultado encontrado
+                    self.treeDatos.focus(item)  # Lleva el foco a la fila encontrada
+                    self.treeDatos.see(item)  # Mueve la vista hacia la fila
+                    encontrado = True
+                    break  # Termina la búsqueda si ya lo encontró
+
+            # **Si el participante no está en la tabla, lo agregamos a la vista**
+            if not encontrado:
+                for row in resultados:
+                    self.treeDatos.insert('', 'end', text=row[0], values=(row[1], row[2], row[3], row[4], row[5], row[6]))
+                mssg.showinfo("Información", "El participante fue agregado a la tabla.")
         else:
             mssg.showinfo("Información", "No se encontraron datos para el ID ingresado.")
 
