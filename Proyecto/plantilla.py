@@ -4,11 +4,12 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox as mssg
 import sqlite3
+import os 
 
 class Participantes:
     # nombre de la base de datos  y ruta 
-    path = r'.'
-    db_name = path + r'/Participantes.db'
+    path = os.path.dirname(os.path.abspath(__file__))
+    db_name = os.path.join(path, 'Participantes.db')
     actualiza = None
     def __init__(self, master=None):
         # Top Level - Ventana Principal
@@ -18,7 +19,7 @@ class Participantes:
         #Top Level - Configuración
         self.win.configure(background="#d9f0f9", height="480", relief="flat", width="1024")
         self.win.geometry("1024x480")
-        self.path = self.path +r'/icono.ico'
+        self.icon_path = self.path +r'/icono.ico'
         self.win.iconbitmap(self.path)
         self.win.resizable(False, False)
         self.win.title("Conferencia MACSS y la Ingenería de Requerimientos")
@@ -209,13 +210,20 @@ class Participantes:
     def limpia_Campos(self):
       pass
 
-    def run_Query(self, query, parametros = ()):
+    def run_Query(self, query, parametros=()):
         ''' Función para ejecutar los Querys a la base de datos '''
         with sqlite3.connect(self.db_name) as conn:
             cursor = conn.cursor()
-            result = cursor.execute(query, parametros)
-            conn.commit()
-        return result
+            try:
+                result = cursor.execute(query, parametros)
+                conn.commit()
+                return result.fetchall()  # Asegúrate de que se obtengan todos los resultados
+            except sqlite3.OperationalError as e:
+                print(f"Error en la consulta: {e}")
+                mssg.showerror("Error", f"Ha ocurrido un error en la base de datos: {e}")
+                return []
+            
+
 
     def lee_tablaTreeView(self):
         ''' Carga los datos de la BD y Limpia la Tabla tablaTreeView '''
