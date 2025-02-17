@@ -114,39 +114,39 @@ class Participantes:
         
           
         #Configuración del Labe Frame    
-        self.lblfrm_Datos.configure(height="310", relief="groove", text=" Inscripción ", width="330")
+        self.lblfrm_Datos.configure(height="360", relief="groove", text=" Inscripción ", width="330")
         self.lblfrm_Datos.place(anchor="nw", relx="0.01", rely="0.1", width="280", x="0", y="0")
         self.lblfrm_Datos.grid_propagate(0)
         
+
         #Botón Grabar
-        
         self.btnGrabar = ttk.Button(self.win)
         self.btnGrabar.configure(state="normal", text="Grabar", width="9")
-        self.btnGrabar.place(anchor="nw", relx="0.01", rely="0.75", x="0", y="0")
+        self.btnGrabar.place(anchor="nw", relx="0.01", rely="0.86", x="0", y="0")
         self.btnGrabar.bind("<1>", self.adiciona_Registro, add="+")
         
         #Botón Editar
         self.btnEditar = ttk.Button(self.win)        
         self.btnEditar.configure(text="Editar", width="9")
-        self.btnEditar.place(anchor="nw", rely="0.75", x="80", y="0")
+        self.btnEditar.place(anchor="nw", rely="0.86", x="80", y="0")
         self.btnEditar.bind("<1>", self.edita_tablaTreeView, add="+")
         
         #Botón Eliminar
         self.btnEliminar = ttk.Button(self.win)
         self.btnEliminar.configure(text="Eliminar", width="9")
-        self.btnEliminar.place(anchor="nw", rely="0.75", x="152", y="0")
+        self.btnEliminar.place(anchor="nw", rely="0.86", x="152", y="0")
         self.btnEliminar.bind("<1>", self.elimina_Registro, add="+")
         
         #Botón Cancelar
         self.btnCancelar = ttk.Button(self.win)
         self.btnCancelar.configure(text="Cancelar", width="9",command = self.limpia_Campos)
-        self.btnCancelar.place(anchor="nw", rely="0.75", x="225", y="0")
+        self.btnCancelar.place(anchor="nw", rely="0.86", x="225", y="0")
         self.btnCancelar.bind("<1>", self.limpia_Campos, add="+")
 
         #Botón Consultar
         self.btnConsultar = ttk.Button(self.win)
         self.btnConsultar.configure(text="Consultar", width="9")
-        self.btnConsultar.place(anchor="nw", rely="0.75", x="120", y="30")
+        self.btnConsultar.place(anchor="nw", rely="0.86", x="120", y="30")
         self.btnConsultar.bind("<1>", self.consulta_Registro, add="+")
     
 
