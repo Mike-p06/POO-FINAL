@@ -27,6 +27,33 @@ class Participantes:
         
         # Main widget
         self.mainwindow = self.win
+
+        # Definir un estilo para los botones
+        self.style = ttk.Style()
+        self.style.configure("Boton.TButton", background="#4CAF50", foreground="white", font=("Helvetica", 10, "bold"))
+        self.style.map("Boton.TButton",
+                       background=[("active", "#45a049")],  # Cambia el color cuando el cursor está sobre el botón
+                       foreground=[("active", "white")])  # Mantiene el color del texto
+        
+        # Botón Grabar
+        self.btnGrabar = ttk.Button(self.win, text="Grabar", width=9, style="Boton.TButton")
+        self.btnGrabar.place(anchor="nw", relx="0.01", rely="0.75", x="0", y="0")
+        self.btnGrabar.bind("<1>", self.adiciona_Registro, add="+")
+        
+        # Botón Editar
+        self.btnEditar = ttk.Button(self.win, text="Editar", width=9, style="Boton.TButton")
+        self.btnEditar.place(anchor="nw", rely="0.75", x="80", y="0")
+        self.btnEditar.bind("<1>", self.edita_tablaTreeView, add="+")
+        
+        # Botón Eliminar
+        self.btnEliminar = ttk.Button(self.win, text="Eliminar", width=9, style="Boton.TButton")
+        self.btnEliminar.place(anchor="nw", rely="0.75", x="152", y="0")
+        self.btnEliminar.bind("<1>", self.elimina_Registro, add="+")
+        
+        # Botón Cancelar
+        self.btnCancelar = ttk.Button(self.win, text="Cancelar", width=9, style="Boton.TButton", command=self.limpia_Campos)
+        self.btnCancelar.place(anchor="nw", rely="0.75", x="225", y="0")
+        
         
         #Label Frame
         self.lblfrm_Datos = tk.LabelFrame(self.win, width= 600, height= 200, labelanchor= "n", 
