@@ -121,7 +121,7 @@ class Participantes:
         #Botón Grabar
         
         self.btnGrabar = ttk.Button(self.win)
-        self.btnGrabar.configure(state="normal", text="Grabar", width="9")
+        self.btnGrabar.configure(text="Grabar", width="9")
         self.btnGrabar.place(anchor="nw", relx="0.01", rely="0.75", x="0", y="0")
         self.btnGrabar.bind("<1>", self.adiciona_Registro, add="+")
         
