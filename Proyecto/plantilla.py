@@ -275,29 +275,46 @@ class Participantes:
             self.treeDatos.insert('',0, text = row[0], values = [row[1],row[2],row[3],row[4],row[5],row[6]])
         
     def adiciona_Registro(self, event=None):
-        '''Adiciona un producto a la BD si la validación es True'''
+        '''Adiciona un participante a la BD si la validación es True'''
         if self.actualiza:
             self.actualiza = None
-            self.entryId.configure(state = 'readonly')
-            query = 'UPDATE t_participantes SET Id = ?,Nombre = ?,Dirección = ?,Celular = ?, Entidad = ?, Fecha = ? WHERE Id = ?'
-            parametros = (self.entryId.get(), self.entryNombre.get(), self.entryDireccion.get(),
-                          self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get()
-                          )
-                        #   self.entryId.get())
+            self.entryId.configure(state='readonly')
+
+            query = '''UPDATE t_participantes 
+                    SET Nombre = ?, Direccion = ?, Celular = ?, Entidad = ?, Fecha = ?, Ciudad = ? 
+                    WHERE Id = ?'''
+            parametros = (self.entryNombre.get(), self.entryDireccion.get(), self.entryCelular.get(),
+                        self.entryEntidad.get(), self.entryFecha.get(), self.entryCiudad.get(),
+                        self.entryId.get())
+
             self.run_Query(query, parametros)
-            mssg.showinfo('Ok',' Registro actualizado con éxito')
+            mssg.showinfo('Éxito', 'Registro actualizado con éxito')
+
         else:
-            query = 'INSERT INTO t_participantes VALUES(?, ?, ?, ?, ?, ?, ?)'
-            parametros = (self.entryId.get(),self.entryNombre.get(), self.entryDireccion.get(),
-                          self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get(), self.entryCiudad.get())
-            if self.valida():
-                self.run_Query(query, parametros)
-                self.limpia_Campos()
-                mssg.showinfo('',f'Registro: {self.entryId.get()} .. agregado')
-            else:
-                mssg.showerror("¡ Atención !","No puede dejar la identificación vacía")
+            if not self.valida():
+                mssg.showerror("¡Atención!", "No puede dejar la identificación vacía")
+                return
+
+            query = '''INSERT INTO t_participantes (Id, Nombre, Direccion, Celular, Entidad, Fecha, Ciudad) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)'''
+            parametros = (self.entryId.get(), self.entryNombre.get(), self.entryDireccion.get(),
+                        self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get(), 
+                        self.entryCiudad.get())
+
+            self.run_Query(query, parametros)
+
+            # Guardamos el ID antes de limpiar los campos para que el mensaje lo muestre correctamente
+            id_guardado = self.entryId.get()
+
+            # Actualizar la tabla
+            self.lee_tablaTreeView()
+
+            # Mostrar mensaje con el ID correcto
+            mssg.showinfo('Éxito', f'Registro {id_guardado} agregado correctamente')
+
+        # Limpiar los campos SOLO AL FINAL
         self.limpia_Campos()
-        self.lee_tablaTreeView()
+
 
     def edita_tablaTreeView(self, event=None):
         try:
