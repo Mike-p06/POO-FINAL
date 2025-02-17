@@ -197,13 +197,15 @@ class Participantes:
         self.mainwindow.mainloop()
 
     def valida_Identificacion(self, event=None):
-        ''' Valida que la longitud no sea mayor a 15 caracteres'''
-        if event.char:
-            if len(self.entryId.get()) >= 15:
-                mssg.showerror('Atención!!','.. ¡Máximo 15 caracteres! ..')
-                self.entryId.delete(15,"end")
-        else:
-              self.entryId.delete(15,"end")
+        '''Evita que el usuario ingrese más de 15 caracteres en el campo de identificación'''
+
+        id_text = self.entryId.get()
+
+        if len(id_text) >= 15 and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
+            mssg.showwarning("Advertencia", "La identificación no puede superar los 15 caracteres.")
+            return "break"  # Esto evita que se agregue el carácter extra
+
+
 
     def valida_Fecha(self, event=None):
       pass
@@ -243,8 +245,7 @@ class Participantes:
         for item in self.treeDatos.selection():
             self.treeDatos.selection_remove(item)
         
-        # Mensaje opcional para indicar que se limpió la pantalla
-        mssg.showinfo("Limpieza", "Los campos han sido limpiados correctamente.")
+
 
 
     def run_Query(self, query, parametros=()):
@@ -329,12 +330,18 @@ class Participantes:
             return
         
     def elimina_Registro(self, event=None):
-        '''Elimina uno o varios participantes con confirmación'''
+        '''Elimina uno, varios o todos los participantes con confirmación'''
 
         seleccionados = self.treeDatos.selection()  # Obtiene los registros seleccionados
 
-        if not seleccionados:
-            mssg.showwarning("Advertencia", "Seleccione al menos un participante para eliminar.")
+        if not seleccionados:  
+            confirmacion = mssg.askyesno("Confirmación", "No ha seleccionado registros. ¿Desea eliminar todos?")
+            
+            if confirmacion:
+                query = 'DELETE FROM t_participantes'
+                self.run_Query(query)
+                self.lee_tablaTreeView()
+                mssg.showinfo("Éxito", "Se eliminaron todos los registros correctamente.")
             return
 
         confirmacion = mssg.askyesno("Confirmación", f"¿Está seguro de que desea eliminar {len(seleccionados)} registro(s)?")
@@ -342,20 +349,13 @@ class Participantes:
         if not confirmacion:
             return
 
-        eliminados = 0
         for item in seleccionados:
             id_participante = self.treeDatos.item(item, "text")
-
             query = 'DELETE FROM t_participantes WHERE Id = ?'
             self.run_Query(query, (id_participante,))
-
             self.treeDatos.delete(item)  # Elimina el registro de la tabla visual
-            eliminados += 1
 
-        if eliminados > 0:
-            mssg.showinfo("Éxito", f"Se eliminaron {eliminados} registro(s) correctamente.")
-        else:
-            mssg.showerror("Error", "No se pudo eliminar ningún registro.")
+        mssg.showinfo("Éxito", f"Se eliminaron {len(seleccionados)} registro(s) correctamente.")
 
 
     def consulta_Registro(self, event=None):
