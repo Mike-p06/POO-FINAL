@@ -1,4 +1,4 @@
-# !/usr/bin/python3
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -17,7 +17,7 @@ class Participantes:
         
              
         #Top Level - Configuración
-        self.win.configure(background="#d9f0f9", height="480", relief="flat", width="1024")
+        self.win.configure(background="#d9f0f9", height= 480, relief="flat", width= 1024 )
         self.win.geometry("1024x480")
         self.icon_path = self.path +r'/icono.ico'
         self.win.iconbitmap(self.icon_path)
