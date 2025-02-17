@@ -29,7 +29,7 @@ class Participantes:
         self.mainwindow = self.win
         
         #Label Frame
-        self.lblfrm_Datos = tk.LabelFrame(self.win, width= 600, height= 200, labelanchor= "n", 
+        self.lblfrm_Datos = tk.LabelFrame(self.win, width= 600 , height= 200, labelanchor= "n", 
                                           font= ("Helvetica", 13,"bold"))
         #Label Id
         self.lblId = ttk.Label(self.lblfrm_Datos)
@@ -119,6 +119,7 @@ class Participantes:
         self.lblfrm_Datos.grid_propagate(0)
         
         #Botón Grabar
+        
         self.btnGrabar = ttk.Button(self.win)
         self.btnGrabar.configure(state="normal", text="Grabar", width="9")
         self.btnGrabar.place(anchor="nw", relx="0.01", rely="0.75", x="0", y="0")
@@ -278,9 +279,9 @@ class Participantes:
         if self.actualiza:
             self.actualiza = None
             self.entryId.configure(state = 'readonly')
-            query = 'UPDATE t_participantes SET Id = ?,Nombre = ?,Dirección = ?,Celular = ?, Entidad = ?, Fecha = ? WHERE Id = ?, Ciudad = ?'
+            query = 'UPDATE t_participantes SET Id = ?,Nombre = ?,Dirección = ?,Celular = ?, Entidad = ?, Fecha = ? WHERE Id = ?'
             parametros = (self.entryId.get(), self.entryNombre.get(), self.entryDireccion.get(),
-                          self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get(), self.entryCiudad.get()
+                          self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get()
                           )
                         #   self.entryId.get())
             self.run_Query(query, parametros)
