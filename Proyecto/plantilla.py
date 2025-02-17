@@ -100,16 +100,17 @@ class Participantes:
         self.entryFecha.grid(column="1", row="5", sticky="w")
         self.entryFecha.bind("<Key>", self.valida_Fecha)
 
+        #Label Ciudad
+        self.lblCiudad = ttk.Label(self.lblfrm_Datos)
+        self.lblCiudad.configure(anchor="e", font="TkTextFont", justify="left", text="Ciudad")
+        self.lblCiudad.configure(width="12")
+        self.lblCiudad.grid(column="0", padx="5", pady="15", row="6", sticky="w")
+
         #Entry Ciudad
         self.entryCiudad = tk.Entry(self.lblfrm_Datos)
         self.entryCiudad.configure(exportselection="true", justify="left",relief="groove", width="30")
-        self.entryCiudad.grid(column="1", row="4", sticky="w")
-        
-        #Label Ciudad
-        self.lblCiudad = ttk.Label(self.lblfrm_Datos)
-        self.lblCiudad.configure(anchor="e", font="TkTextFont", justify="left", text="Fecha")
-        self.lblCiudad.configure(width="12")
-        self.lblCiudad.grid(column="0", padx="5", pady="15", row="5", sticky="w")
+        self.entryCiudad.grid(column="1", row="6", sticky="w")
+    
         
           
         #Configuración del Labe Frame    
@@ -286,7 +287,22 @@ class Participantes:
      pass
 
     def consulta_Registro(self, event=None):
-     pass
+        '''Consulta un participante por su Id o NIT y carga los datos en la tabla'''
+        id_participante = self.entryId.get().strip()
+
+        if not id_participante:
+            mssg.showwarning("Advertencia", "Por favor ingrese un ID para consultar.")
+            return
+
+        query = 'SELECT * FROM t_participantes WHERE Id = ?'
+        resultados = self.run_Query(query, (id_participante,))
+
+        if resultados:
+            for row in resultados:
+                self.treeDatos.insert('', 'end', text=row[0], values=(row[1], row[2], row[3], row[4], row[5], row[6]))
+        else:
+            mssg.showinfo("Información", "No se encontraron datos para el ID ingresado.")
+
 
 
 if __name__ == "__main__":
