@@ -219,8 +219,32 @@ class Participantes:
         self.entryFecha.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][4])
         self.entryCiudad.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][5])
               
-    def limpia_Campos(self):
-      pass
+              
+    def limpia_Campos(self, event=None):
+        '''Cancela cualquier acción en curso y limpia todos los campos de entrada'''
+
+        # Restablecer la variable de actualización (en caso de edición)
+        self.actualiza = None  
+
+        # Habilitar el campo ID por si estaba en modo de solo lectura
+        self.entryId.configure(state='normal')
+
+        # Limpiar todos los campos de entrada
+        self.entryId.delete(0, tk.END)
+        self.entryNombre.delete(0, tk.END)
+        self.entryDireccion.delete(0, tk.END)
+        self.entryCelular.delete(0, tk.END)
+        self.entryEntidad.delete(0, tk.END)
+        self.entryFecha.delete(0, tk.END)
+        self.entryCiudad.delete(0, tk.END)
+
+        # Desseleccionar cualquier elemento en la tabla
+        for item in self.treeDatos.selection():
+            self.treeDatos.selection_remove(item)
+        
+        # Mensaje opcional para indicar que se limpió la pantalla
+        mssg.showinfo("Limpieza", "Los campos han sido limpiados correctamente.")
+
 
     def run_Query(self, query, parametros=()):
         ''' Función para ejecutar los Querys a la base de datos '''
