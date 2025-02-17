@@ -29,7 +29,7 @@ class Participantes:
         self.mainwindow = self.win
         
         #Label Frame
-        self.lblfrm_Datos = tk.LabelFrame(self.win, width= 600, height= 200, labelanchor= "n", 
+        self.lblfrm_Datos = tk.LabelFrame(self.win, width= 600 , height= 200, labelanchor= "n", 
                                           font= ("Helvetica", 13,"bold"))
         #Label Id
         self.lblId = ttk.Label(self.lblfrm_Datos)
@@ -119,6 +119,7 @@ class Participantes:
         self.lblfrm_Datos.grid_propagate(0)
         
         #Botón Grabar
+        
         self.btnGrabar = ttk.Button(self.win)
         self.btnGrabar.configure(state="normal", text="Grabar", width="9")
         self.btnGrabar.place(anchor="nw", relx="0.01", rely="0.75", x="0", y="0")
