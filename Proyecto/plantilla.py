@@ -4,6 +4,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox as mssg
 import sqlite3
+from tkcalendar import Calendar
 
 class Participantes:
     # nombre de la base de datos  y ruta 
