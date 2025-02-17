@@ -139,7 +139,15 @@ class Participantes:
         self.btnCancelar = ttk.Button(self.win)
         self.btnCancelar.configure(text="Cancelar", width="9",command = self.limpia_Campos)
         self.btnCancelar.place(anchor="nw", rely="0.75", x="225", y="0")
-        
+        self.btnGrabar.bind("<1>", self.limpia_Campos, add="+")
+
+        #Botón Consultar
+        self.btnCancelar = ttk.Button(self.win)
+        self.btnCancelar.configure(text="Consultar", width="9")
+        self.btnCancelar.place(anchor="nw", rely="0.75", x="250", y="0")
+        self.btnGrabar.bind("<1>", self.consulta_Registro, add="+")
+    
+
         #tablaTreeView
         self.style=ttk.Style()
         self.style.configure("estilo.Treeview", highlightthickness=0, bd=0, background='AliceBlue', font=('Calibri Light',10))
@@ -276,6 +284,10 @@ class Participantes:
         
     def elimina_Registro(self, event=None):
      pass
+
+    def consulta_Registro(self, event=None):
+     pass
+
 
 if __name__ == "__main__":
     app = Participantes()
