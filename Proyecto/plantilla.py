@@ -20,7 +20,7 @@ class Participantes:
         self.win.configure(background="#d9f0f9", height="480", relief="flat", width="1024")
         self.win.geometry("1024x480")
         self.icon_path = self.path +r'/icono.ico'
-        self.win.iconbitmap(self.path)
+        self.win.iconbitmap(self.icon_path)
         self.win.resizable(False, False)
         self.win.title("Conferencia MACSS y la Ingenería de Requerimientos")
         self.win.pack_propagate(0) 
