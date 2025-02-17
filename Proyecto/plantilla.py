@@ -108,7 +108,7 @@ class Participantes:
 
         #Entry Ciudad
         self.entryCiudad = tk.Entry(self.lblfrm_Datos)
-        self.entryCiudad.configure(exportselection="true", justify="left",relief="groove", width="30")
+        self.entryCiudad.configure(exportselection="false", justify="left",relief="groove", width="30")
         self.entryCiudad.grid(column="1", row="6", sticky="w")
     
         
@@ -141,13 +141,13 @@ class Participantes:
         self.btnCancelar = ttk.Button(self.win)
         self.btnCancelar.configure(text="Cancelar", width="9",command = self.limpia_Campos)
         self.btnCancelar.place(anchor="nw", rely="0.75", x="225", y="0")
-        self.btnGrabar.bind("<1>", self.limpia_Campos, add="+")
+        self.btnCancelar.bind("<1>", self.limpia_Campos, add="+")
 
         #Botón Consultar
-        self.btnCancelar = ttk.Button(self.win)
-        self.btnCancelar.configure(text="Consultar", width="9")
-        self.btnCancelar.place(anchor="nw", rely="0.75", x="250", y="0")
-        self.btnGrabar.bind("<1>", self.consulta_Registro, add="+")
+        self.btnConsultar = ttk.Button(self.win)
+        self.btnConsultar.configure(text="Consultar", width="9")
+        self.btnConsultar.place(anchor="nw", rely="0.75", x="275", y="0")
+        self.btnConsultar.bind("<1>", self.consulta_Registro, add="+")
     
 
         #tablaTreeView
@@ -156,11 +156,11 @@ class Participantes:
         self.style.configure("estilo.Treeview.Heading", background='Azure', font=('Calibri Light', 10,'bold')) 
         self.style.layout("estilo.Treeview", [('estilo.Treeview.treearea', {'sticky': 'nswe'})])
 
-        self.treeDatos = ttk.Treeview(self.win, height = 10, style="estilo.Treeview")
+        self.treeDatos = ttk.Treeview(self.win, height = 10, style="estilo.Treeview", selectmode="extended")
         self.treeDatos.place(x=380, y=10, height=340, width = 500)
 
        # Etiquetas de las columnas
-        self.treeDatos["columns"]=("Nombre","Dirección","Celular","Entidad","Fecha")
+        self.treeDatos["columns"]=("Nombre","Dirección","Celular","Entidad","Fecha","Ciudad")
         # Determina el espacio a mostrar que ocupa el código
         self.treeDatos.column('#0',         anchor="w", stretch="true", width=15)
         self.treeDatos.column('Nombre',     stretch="true",             width=60)
@@ -168,6 +168,7 @@ class Participantes:
         self.treeDatos.column('Celular',    stretch="true",             width=16)
         self.treeDatos.column('Entidad',    stretch="true",             width=60)
         self.treeDatos.column('Fecha',      stretch="true",             width=12) 
+        self.treeDatos.column('Ciudad',      stretch="true",             width=50) 
 
        #Encabezados de las columnas de la pantalla
         self.treeDatos.heading('#0',       text = 'Id')
@@ -176,6 +177,7 @@ class Participantes:
         self.treeDatos.heading('Celular',  text = 'Celular')
         self.treeDatos.heading('Entidad',  text = 'Entidad')
         self.treeDatos.heading('Fecha',    text = 'Fecha')
+        self.treeDatos.heading('Ciudad',    text = 'Ciudad')
 
         #Scrollbar en el eje Y de treeDatos
         self.scrollbar=ttk.Scrollbar(self.win, orient='vertical', command=self.treeDatos.yview)
@@ -216,9 +218,34 @@ class Participantes:
         self.entryCelular.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][2])
         self.entryEntidad.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][3])
         self.entryFecha.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][4])
+        self.entryCiudad.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][5])
               
-    def limpia_Campos(self):
-      pass
+              
+    def limpia_Campos(self, event=None):
+        '''Cancela cualquier acción en curso y limpia todos los campos de entrada'''
+
+        # Restablecer la variable de actualización (en caso de edición)
+        self.actualiza = None  
+
+        # Habilitar el campo ID por si estaba en modo de solo lectura
+        self.entryId.configure(state='normal')
+
+        # Limpiar todos los campos de entrada
+        self.entryId.delete(0, tk.END)
+        self.entryNombre.delete(0, tk.END)
+        self.entryDireccion.delete(0, tk.END)
+        self.entryCelular.delete(0, tk.END)
+        self.entryEntidad.delete(0, tk.END)
+        self.entryFecha.delete(0, tk.END)
+        self.entryCiudad.delete(0, tk.END)
+
+        # Desseleccionar cualquier elemento en la tabla
+        for item in self.treeDatos.selection():
+            self.treeDatos.selection_remove(item)
+        
+        # Mensaje opcional para indicar que se limpió la pantalla
+        mssg.showinfo("Limpieza", "Los campos han sido limpiados correctamente.")
+
 
     def run_Query(self, query, parametros=()):
         ''' Función para ejecutar los Querys a la base de datos '''
@@ -245,25 +272,24 @@ class Participantes:
         db_rows = self.run_Query(query)
         # Insertando los datos de la BD en la tabla de la pantalla
         for row in db_rows:
-            self.treeDatos.insert('',0, text = row[0], values = [row[1],row[2],row[3],row[4],row[5]])
+            self.treeDatos.insert('',0, text = row[0], values = [row[1],row[2],row[3],row[4],row[5],row[6]])
         
     def adiciona_Registro(self, event=None):
         '''Adiciona un producto a la BD si la validación es True'''
         if self.actualiza:
             self.actualiza = None
             self.entryId.configure(state = 'readonly')
-            query = 'UPDATE t_participantes SET Id = ?,Nombre = ?,Dirección = ?,Celular = ?, Entidad = ?, Fecha = ?, Ciudad = ? WHERE Id = ?'
+            query = 'UPDATE t_participantes SET Id = ?,Nombre = ?,Dirección = ?,Celular = ?, Entidad = ?, Fecha = ? WHERE Id = ?'
             parametros = (self.entryId.get(), self.entryNombre.get(), self.entryDireccion.get(),
-                          self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get(),
-                          self.entryCiudad.get()
+                          self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get()
                           )
                         #   self.entryId.get())
             self.run_Query(query, parametros)
             mssg.showinfo('Ok',' Registro actualizado con éxito')
         else:
-            query = 'INSERT INTO t_participantes VALUES(?, ?, ?, ?, ?, ?)'
+            query = 'INSERT INTO t_participantes VALUES(?, ?, ?, ?, ?, ?, ?)'
             parametros = (self.entryId.get(),self.entryNombre.get(), self.entryDireccion.get(),
-                          self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get())
+                          self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get(), self.entryCiudad.get())
             if self.valida():
                 self.run_Query(query, parametros)
                 self.limpia_Campos()
@@ -286,10 +312,38 @@ class Participantes:
             return
         
     def elimina_Registro(self, event=None):
-     pass
+        '''Elimina uno o varios participantes con confirmación'''
+
+        seleccionados = self.treeDatos.selection()  # Obtiene los registros seleccionados
+
+        if not seleccionados:
+            mssg.showwarning("Advertencia", "Seleccione al menos un participante para eliminar.")
+            return
+
+        confirmacion = mssg.askyesno("Confirmación", f"¿Está seguro de que desea eliminar {len(seleccionados)} registro(s)?")
+
+        if not confirmacion:
+            return
+
+        eliminados = 0
+        for item in seleccionados:
+            id_participante = self.treeDatos.item(item, "text")
+
+            query = 'DELETE FROM t_participantes WHERE Id = ?'
+            self.run_Query(query, (id_participante,))
+
+            self.treeDatos.delete(item)  # Elimina el registro de la tabla visual
+            eliminados += 1
+
+        if eliminados > 0:
+            mssg.showinfo("Éxito", f"Se eliminaron {eliminados} registro(s) correctamente.")
+        else:
+            mssg.showerror("Error", "No se pudo eliminar ningún registro.")
+
 
     def consulta_Registro(self, event=None):
-        '''Consulta un participante por su Id o NIT y carga los datos en la tabla'''
+        '''Consulta un participante por su Id y lo resalta en la tabla'''
+
         id_participante = self.entryId.get().strip()
 
         if not id_participante:
@@ -300,8 +354,24 @@ class Participantes:
         resultados = self.run_Query(query, (id_participante,))
 
         if resultados:
-            for row in resultados:
-                self.treeDatos.insert('', 'end', text=row[0], values=(row[1], row[2], row[3], row[4], row[5], row[6]))
+            encontrado = False
+
+            # **Buscar en la tabla si el ID ya está cargado**
+            for item in self.treeDatos.get_children():
+                id_actual = str(self.treeDatos.item(item, "text"))  # Convertimos a string para evitar errores
+
+                if id_actual == id_participante:
+                    self.treeDatos.selection_set(item)  # Selecciona el resultado encontrado
+                    self.treeDatos.focus(item)  # Lleva el foco a la fila encontrada
+                    self.treeDatos.see(item)  # Mueve la vista hacia la fila
+                    encontrado = True
+                    break  # Termina la búsqueda si ya lo encontró
+
+            # **Si el participante no está en la tabla, lo agregamos a la vista**
+            if not encontrado:
+                for row in resultados:
+                    self.treeDatos.insert('', 'end', text=row[0], values=(row[1], row[2], row[3], row[4], row[5], row[6]))
+                mssg.showinfo("Información", "El participante fue agregado a la tabla.")
         else:
             mssg.showinfo("Información", "No se encontraron datos para el ID ingresado.")
 
