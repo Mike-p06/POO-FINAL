@@ -293,7 +293,7 @@ class Participantes:
             if self.valida():
                 self.run_Query(query, parametros)
                 self.limpia_Campos()
-                mssg.showinfo('',f'Registro: {self.entryId.get()} .. agregado')
+                mssg.showinfo('',f'Registro: {self.entryId.get()} agregado')
             else:
                 mssg.showerror("¡ Atención !","No puede dejar la identificación vacía")
         self.limpia_Campos()
