@@ -123,7 +123,7 @@ class Participantes:
         #Botón Grabar
         self.btnGrabar = ttk.Button(self.win)
         self.btnGrabar.configure(state="normal", text="Grabar", width="9")
-        self.btnGrabar.place(anchor="nw", relx="0.01", rely="0.75", x="0", y="0")
+        self.btnGrabar.place(anchor="nw", relx="0.01", rely="0.86", x="0", y="0")
         self.btnGrabar.bind("<1>", self.adiciona_Registro, add="+")
         
         #Botón Editar
@@ -281,6 +281,23 @@ class Participantes:
         
     def adiciona_Registro(self, event=None):
         '''Adiciona un participante a la BD si la validación es True'''
+    
+        id_participante = self.entryId.get().strip()
+
+        if not id_participante:
+            mssg.showerror("¡Atención!", "No puede dejar la identificación vacía")
+            return
+
+        # Verificar si el ID/NIT ya existe en la BD
+        query_check = "SELECT COUNT(*) FROM t_participantes WHERE Id = ?"
+        resultado = self.run_Query(query_check, (id_participante,))
+
+        if resultado[0][0] > 0:  # El ID ya existe en la base de datos
+            mssg.showerror("Error", f"El participante con ID '{id_participante}' ya existe.")
+            self.entryId.configure(state="readonly")  # Bloquear edición del ID
+            return
+
+
         if self.actualiza:
             self.actualiza = None
             self.entryId.configure(state='readonly')
@@ -290,7 +307,7 @@ class Participantes:
                     WHERE Id = ?'''
             parametros = (self.entryNombre.get(), self.entryDireccion.get(), self.entryCelular.get(),
                         self.entryEntidad.get(), self.entryFecha.get(), self.entryCiudad.get(),
-                        self.entryId.get())
+                        id_participante)
 
             self.run_Query(query, parametros)
             mssg.showinfo('Éxito', 'Registro actualizado con éxito')
@@ -303,23 +320,20 @@ class Participantes:
             query = '''INSERT INTO t_participantes (Id, Nombre, Direccion, Celular, Entidad, Fecha, Ciudad) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)'''
             parametros = (self.entryId.get(), self.entryNombre.get(), self.entryDireccion.get(),
-                          self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get()
-                          )
-                        #   self.entryId.get())
-            self.run_Query(query, parametros)
+                        self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get(), 
+                        self.entryCiudad.get())
 
-            # Guardamos el ID antes de limpiar los campos para que el mensaje lo muestre correctamente
-            id_guardado = self.entryId.get()
+            self.run_Query(query, parametros)
 
             # Actualizar la tabla
             self.lee_tablaTreeView()
 
             # Mostrar mensaje con el ID correcto
-            mssg.showinfo('Éxito', f'Registro {id_guardado} agregado correctamente')
+            mssg.showinfo('Éxito', f'Registro {id_participante} agregado correctamente')
 
         # Limpiar los campos SOLO AL FINAL
         self.limpia_Campos()
-        self.lee_tablaTreeView()
+
 
     def edita_tablaTreeView(self, event=None):
         if self.actualiza:
