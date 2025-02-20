@@ -5,6 +5,7 @@ import tkinter.ttk as ttk
 from tkinter import messagebox as mssg
 import sqlite3
 import os 
+from tkcalendar import DateEntry
 
 class Participantes:
     # nombre de la base de datos  y ruta 
@@ -208,7 +209,10 @@ class Participantes:
 
 
     def valida_Fecha(self, event=None):
-      pass
+      # Reemplaza el campo de entrada de fecha con un DateEntry
+        self.entryFecha = DateEntry(self.lblfrm_Datos, date_pattern="dd/MM/yyyy", background="lightblue",
+                                    foreground="black", borderwidth=2)
+        self.entryFecha.grid(column="1", row="5", sticky="w")
     
 
     def carga_Datos(self):
@@ -332,16 +336,39 @@ class Participantes:
 
 
     def edita_tablaTreeView(self, event=None):
-        try:
-            # Carga los campos desde la tabla TreeView
-            self.treeDatos.item(self.treeDatos.selection())['text']
-            self.limpia_Campos()
-            self.actualiza = True # Esta variable controla la actualización
-            self.carga_Datos()
-        except IndexError as error:
-            self.actualiza = None
-            mssg.showerror("¡ Atención !",'Por favor seleccione un ítem de la tabla')
+        if self.actualiza:
+            seleccionar = self.treeDatos.selection()
+            if not seleccionar:
+                mssg.showerror("¡Atención!",'Por favor seleccionar una fila de la tabala para su edición')
+                return
+            id = self.entryId.get()
+            nombre_editado = self.entryNombre.get()
+            direccion_editado = self.entryDireccion.get()
+            celular_editado = self.entryCelular.get()
+            entidad_editado = self.entryEntidad.get()
+            fecha_editado = self.entryFecha.get()
+            ciudad_editada = self.entryCiudad.get()
+            self.treeDatos.item(seleccionar, text=id, 
+                            values=(nombre_editado, direccion_editado, celular_editado, entidad_editado, fecha_editado, ciudad_editada))
+            
+            mssg.showinfo("Exito",'Fila actualizada correctamente')
+            self.actualiza = False
+            return 
+        
+        # Carga los campos desde la tabla TreeView
+        seleccionar = self.treeDatos.selection()
+        if not seleccionar:
+            mssg.showwarning("Advertencia", "Seleccione una fila para editar.")
             return
+        self.entryId.insert(0, self.treeDatos.item(seleccionar)['text'])
+        self.entryId.configure(state='readonly')  # Hacer que el campo ID sea solo de lectura
+        self.entryNombre.insert(0, self.treeDatos.item(seleccionar)['values'][0])
+        self.entryDireccion.insert(0, self.treeDatos.item(seleccionar)['values'][1])
+        self.entryCelular.insert(0, self.treeDatos.item(seleccionar)['values'][2])
+        self.entryEntidad.insert(0, self.treeDatos.item(seleccionar)['values'][3])
+        self.entryFecha.insert(0, self.treeDatos.item(seleccionar)['values'][4])
+        self.entryCiudad.insert(0, self.treeDatos.item(seleccionar)['values'][5])
+        self.actualiza = True # Esta variable contro la actualización
         
     def elimina_Registro(self, event=None):
         '''Elimina uno, varios o todos los participantes con confirmación'''
