@@ -6,6 +6,7 @@ from tkinter import messagebox as mssg
 import sqlite3
 import os 
 from tkcalendar import DateEntry
+import datetime
 
 class Participantes:
     # nombre de la base de datos  y ruta 
@@ -55,7 +56,7 @@ class Participantes:
         self.entryNombre = tk.Entry(self.lblfrm_Datos)
         self.entryNombre.configure(exportselection="true", justify="left",relief="groove", width="30")
         self.entryNombre.grid(column="1", row="1", sticky="w")
-        
+        self.entryNombre.bind("<Key>", self.valida_Nombre)
         #Label Direccion
         self.lblDireccion = ttk.Label(self.lblfrm_Datos)
         self.lblDireccion.configure(anchor="e", font="TkTextFont", justify="left", text="Dirección")
@@ -77,6 +78,7 @@ class Participantes:
         self.entryCelular = tk.Entry(self.lblfrm_Datos)
         self.entryCelular.configure(exportselection="false", justify="left",relief="groove", width="30")
         self.entryCelular.grid(column="1", row="3", sticky="w")
+        self.entryCelular.bind("<Key>", self.valida_Celular)
         
         #Label Entidad
         self.lblEntidad = ttk.Label(self.lblfrm_Datos)
@@ -198,20 +200,47 @@ class Participantes:
         self.mainwindow.mainloop()
 
     def valida_Identificacion(self, event=None):
-        '''Evita que el usuario ingrese más de 15 caracteres en el campo de identificación'''
+     '''Permite solo números y muestra un mensaje si supera 15 caracteres'''
+     id_text = self.entryId.get()
 
-        id_text = self.entryId.get()
+     if not event.char.isdigit() and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
+        return "break"  # Bloquea caracteres no numéricos
 
-        if len(id_text) >= 15 and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
-            mssg.showwarning("Advertencia", "La identificación no puede superar los 15 caracteres.")
-            return "break"  # Esto evita que se agregue el carácter extra
+     if len(id_text) >= 15 and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
+        mssg.showwarning("Advertencia", "La identificación no puede superar los 15 caracteres.")
+        self.entryId.after(1, lambda: self.entryId.delete(15, "end"))  # Elimina el carácter extra
+        return "break"
 
+    def valida_Celular(self, event=None):
+     '''Permite solo números y máximo 10 caracteres en el campo de celular'''
+     celular_text = self.entryCelular.get()
+    
+     if not event.char.isdigit() and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
+        return "break"  # Bloquea la entrada de caracteres no numéricos
 
-
+     if len(celular_text) >= 10 and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
+        return "break"  # Evita que supere los 10 caracteres
+    
+    def valida_Nombre(self, event=None):
+        '''Permite solo letras y espacios en el campo de Nombre'''
+        if not event.char.isalpha() and event.char != " " and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
+            return "break"  # Bloquea números y caracteres especiales
+            
     def valida_Fecha(self, event=None):
-      # Reemplaza el campo de entrada de fecha con un DateEntry
-        self.entryFecha = DateEntry(self.lblfrm_Datos, date_pattern="dd/MM/yyyy", background="lightblue",
-                                    foreground="black", borderwidth=2)
+        '''Configura el campo de fecha para no permitir fechas futuras y reemplaza el campo anterior'''
+        today = datetime.date.today()  # Obtiene la fecha actual
+
+        # Si ya existe el campo, lo eliminamos
+        if hasattr(self, "entryFecha"):
+         self.entryFecha.destroy()
+
+        # Creamos el nuevo campo de fecha con restricción de fechas futuras
+        self.entryFecha = DateEntry(self.lblfrm_Datos, 
+                                date_pattern="dd/MM/yyyy", 
+                                background="DarkCyan",
+                                foreground="black", 
+                                borderwidth=2, 
+                                maxdate=today)  # Restringe la selección hasta hoy
         self.entryFecha.grid(column="1", row="5", sticky="w")
     
 
@@ -249,9 +278,6 @@ class Participantes:
         for item in self.treeDatos.selection():
             self.treeDatos.selection_remove(item)
         
-
-
-
     def run_Query(self, query, parametros=()):
         ''' Función para ejecutar los Querys a la base de datos '''
         with sqlite3.connect(self.db_name) as conn:
