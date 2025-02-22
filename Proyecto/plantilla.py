@@ -276,7 +276,6 @@ class Participantes:
     def limpia_Campos(self, event=None):
         '''Cancela cualquier acción en curso y limpia todos los campos de entrada'''
 
-        # Restablecer la variable de actualización (en caso de edición)
         self.actualiza = None  
 
         # Habilitar el campo ID por si estaba en modo de solo lectura
@@ -290,6 +289,7 @@ class Participantes:
         self.entryEntidad.delete(0, tk.END)
         self.entryFecha.delete(0, tk.END)
         self.boxDepartamento.set(self.departamentos[0])
+        # Mostrar ciudades y fecha desde 0 
         self.actualizar_ciudades()
         self.mostrar_departamento()
         self.valida_Fecha()
@@ -306,7 +306,7 @@ class Participantes:
             try:
                 result = cursor.execute(query, parametros)
                 conn.commit()
-                return result.fetchall()  # Asegúrate de que se obtengan todos los resultados
+                return result.fetchall()  # Asegura de que se obtengan todos los resultados
             except sqlite3.OperationalError as e:
                 print(f"Error en la consulta: {e}")
                 mssg.showerror("Error", f"Ha ocurrido un error en la base de datos: {e}")
@@ -367,7 +367,7 @@ class Participantes:
         if not id_participante:
             mssg.showerror("¡Atención!", "No puede dejar la identificación vacía")
             return
-        # Verificar si el ID ya existe en la BD
+        # Verificar si el ID ya existe en la base de datos
         query_check = "SELECT COUNT(*) FROM t_participantes WHERE Id = ?"
         resultado = self.run_Query(query_check, (id_participante,))
 
@@ -507,7 +507,7 @@ class Participantes:
         if resultados:
             encontrado = False
 
-            # **Buscar en la tabla si el ID ya está cargado**
+            # Buscar en la tabla si el ID ya está cargado
             for item in self.treeDatos.get_children():
                 id_actual = str(self.treeDatos.item(item, "text"))  # Convertimos a string para evitar errores
 
@@ -516,9 +516,9 @@ class Participantes:
                     self.treeDatos.focus(item)  # Lleva el foco a la fila encontrada
                     self.treeDatos.see(item)  # Mueve la vista hacia la fila
                     encontrado = True
-                    break  # Termina la búsqueda si ya lo encontró
+                    break  
 
-            # **Si el participante no está en la tabla, lo agregamos a la vista**
+            # Si el participante no está en la tabla, lo agregamos a la vista
             if not encontrado:
                 for row in resultados:
                     self.treeDatos.insert('', 'end', text=row[0], values=(row[1], row[2], row[3], row[4], row[5], row[6]))
