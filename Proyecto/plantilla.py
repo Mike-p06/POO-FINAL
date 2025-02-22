@@ -5,7 +5,7 @@ import tkinter.ttk as ttk
 from tkinter import messagebox as mssg
 import sqlite3
 import os 
-from tkcalendar import DateEntry # type: ignore
+from tkcalendar import DateEntry
 import datetime
 
 class Participantes:
