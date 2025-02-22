@@ -117,7 +117,7 @@ class Participantes:
         #Entry Ciudad
         self.entryCiudad = tk.Entry(self.lblfrm_Datos)
         self.entryCiudad.configure(exportselection="false", justify="left",relief="groove", width="30")
-        self.entryCiudad.grid(column="1", row="6", sticky="w")
+
     
         #Box Departamento
         self.boxDepartamento = ttk.Combobox(self.lblfrm_Datos, values=self.departamentos, state="readonly")
@@ -244,7 +244,7 @@ class Participantes:
     def valida_Fecha(self, event=None):
      '''Configura el campo de fecha para no permitir fechas futuras ni pasadas, solo del año actual'''
      today = datetime.date.today()  # Obtiene la fecha actual
-     first_day_of_year = datetime.date(today.year, 1, 1)  # Primer día del año actual
+     first_day_of_year = datetime.date(2024, 1, 1) 
 
      # Si ya existe el campo, lo eliminamos
      if hasattr(self, "entryFecha"):
@@ -367,7 +367,7 @@ class Participantes:
         if not id_participante:
             mssg.showerror("¡Atención!", "No puede dejar la identificación vacía")
             return
-        # Verificar si el ID/NIT ya existe en la BD
+        # Verificar si el ID ya existe en la BD
         query_check = "SELECT COUNT(*) FROM t_participantes WHERE Id = ?"
         resultado = self.run_Query(query_check, (id_participante,))
 
@@ -454,6 +454,7 @@ class Participantes:
         self.entryDireccion.insert(0, self.treeDatos.item(seleccionar)['values'][1])
         self.entryCelular.insert(0, self.treeDatos.item(seleccionar)['values'][2])
         self.entryEntidad.insert(0, self.treeDatos.item(seleccionar)['values'][3])
+        self.entryFecha.delete(0, tk.END)
         self.entryFecha.insert(0, self.treeDatos.item(seleccionar)['values'][4])
         departamento_ciudad = self.treeDatos.item(seleccionar)['values'][5]
         departamento, ciudad = departamento_ciudad.split("/")
