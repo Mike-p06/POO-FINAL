@@ -290,6 +290,7 @@ class Participantes:
         self.boxDepartamento.set(self.departamentos[0])
         self.actualizar_ciudades()
         self.mostrar_departamento()
+        self.valida_Fecha()
 
 
         # Desseleccionar cualquier elemento en la tabla
