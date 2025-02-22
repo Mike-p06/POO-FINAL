@@ -5,7 +5,7 @@ import tkinter.ttk as ttk
 from tkinter import messagebox as mssg
 import sqlite3
 import os 
-from tkcalendar import DateEntry
+from tkcalendar import DateEntry # type: ignore
 import datetime
 
 class Participantes:
@@ -242,21 +242,23 @@ class Participantes:
             return "break"  # Bloquea números y caracteres especiales
             
     def valida_Fecha(self, event=None):
-        '''Configura el campo de fecha para no permitir fechas futuras y reemplaza el campo anterior'''
-        today = datetime.date.today()  # Obtiene la fecha actual
+     '''Configura el campo de fecha para no permitir fechas futuras ni pasadas, solo del año actual'''
+     today = datetime.date.today()  # Obtiene la fecha actual
+     first_day_of_year = datetime.date(today.year, 1, 1)  # Primer día del año actual
 
-        # Si ya existe el campo, lo eliminamos
-        if hasattr(self, "entryFecha"):
-         self.entryFecha.destroy()
+     # Si ya existe el campo, lo eliminamos
+     if hasattr(self, "entryFecha"):
+        self.entryFecha.destroy()
 
-        # Creamos el nuevo campo de fecha con restricción de fechas futuras
-        self.entryFecha = DateEntry(self.lblfrm_Datos, 
+     # Creamos el nuevo campo de fecha con restricción de fechas futuras y pasadas
+     self.entryFecha = DateEntry(self.lblfrm_Datos, 
                                 date_pattern="dd/MM/yyyy", 
                                 background="DarkCyan",
                                 foreground="black", 
                                 borderwidth=2, 
-                                maxdate=today)  # Restringe la selección hasta hoy
-        self.entryFecha.grid(column="1", row="5", sticky="w")
+                                maxdate=today,  # Restringe la selección hasta hoy
+                                mindate=first_day_of_year)  # Restringe la selección desde el primer día del año
+     self.entryFecha.grid(column="1", row="5", sticky="w")
     
 
     def carga_Datos(self):
