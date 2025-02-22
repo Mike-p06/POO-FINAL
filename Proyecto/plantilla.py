@@ -101,7 +101,12 @@ class Participantes:
         self.entryFecha = tk.Entry(self.lblfrm_Datos)
         self.entryFecha.configure(exportselection="true", justify="left",relief="groove", width="30")
         self.entryFecha.grid(column="1", row="5", sticky="w")
-        self.entryFecha.bind("<Key>", self.valida_Fecha)
+        self.valida_Fecha()
+
+
+        self.departamentos = self.traer_departamentos()
+        self.ciudades = self.traer_ciudades(self.departamentos[0])
+
 
         #Label Ciudad
         self.lblCiudad = ttk.Label(self.lblfrm_Datos)
@@ -114,7 +119,17 @@ class Participantes:
         self.entryCiudad.configure(exportselection="false", justify="left",relief="groove", width="30")
         self.entryCiudad.grid(column="1", row="6", sticky="w")
     
+        #Box Departamento
+        self.boxDepartamento = ttk.Combobox(self.lblfrm_Datos, values=self.departamentos, state="readonly")
+        self.boxDepartamento.grid(column="1", row="6", sticky="w")
+        self.boxDepartamento.set(self.departamentos[0])
+        self.boxDepartamento.bind("<<ComboboxSelected>>", self.actualizar_ciudades)
         
+        #Box Ciudad
+        self.boxCiudad = ttk.Combobox(self.lblfrm_Datos, values=self.ciudades, state="readonly")
+        self.boxCiudad.grid(column="1", row="7", sticky="w")
+        #self.boxCiudad.set(self.ciudades[0])
+        self.boxCiudad.grid_remove()
           
         #Configuración del Labe Frame    
         self.lblfrm_Datos.configure(height="360", relief="groove", text=" Inscripción ", width="330")
@@ -253,7 +268,7 @@ class Participantes:
         self.entryCelular.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][2])
         self.entryEntidad.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][3])
         self.entryFecha.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][4])
-        self.entryCiudad.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][5])
+        self.boxCiudad.set(self.treeDatos.item(self.treeDatos.selection())['values'][5])
               
 
     def limpia_Campos(self, event=None):
@@ -272,7 +287,10 @@ class Participantes:
         self.entryCelular.delete(0, tk.END)
         self.entryEntidad.delete(0, tk.END)
         self.entryFecha.delete(0, tk.END)
-        self.entryCiudad.delete(0, tk.END)
+        self.boxDepartamento.set(self.departamentos[0])
+        self.actualizar_ciudades()
+        self.mostrar_departamento()
+
 
         # Desseleccionar cualquier elemento en la tabla
         for item in self.treeDatos.selection():
@@ -304,16 +322,48 @@ class Participantes:
         # Insertando los datos de la BD en la tabla de la pantalla
         for row in db_rows:
             self.treeDatos.insert('',0, text = row[0], values = [row[1],row[2],row[3],row[4],row[5],row[6]])
+            
+
+    def actualizar_ciudades(self, event=None):
+        departamento_seleccionado = self.boxDepartamento.get()
+        self.ciudades = self.traer_ciudades(departamento_seleccionado)
+        self.boxCiudad['values'] = self.ciudades
+        if self.ciudades:
+            self.boxCiudad.set(self.ciudades[0])
+        self.boxDepartamento.grid_remove()
+        self.boxCiudad.grid(column="1", row="6", sticky="w")
+        
+    def mostrar_departamento(self):
+        self.boxDepartamento.grid(column="1", row="6", sticky="w")
+        self.boxCiudad.grid_remove()
+        self.boxDepartamento.set(self.departamentos[0])
+        self.boxCiudad.set(self.ciudades[0])
+    
+    def traer_departamentos(self):
+        query = '''SELECT Nombre_Departamento
+        FROM t_ciudades
+        GROUP BY Nombre_Departamento
+        ORDER BY Nombre_Departamento ASC'''
+
+        departamentos = self.run_Query(query)
+        return [dep[0] for dep in departamentos]
+
+    def traer_ciudades(self, departamento_seleccionado):
+        query = '''SELECT Nombre_Ciudad
+        FROM t_ciudades
+        WHERE Nombre_Departamento = ?
+        ORDER BY Nombre_Ciudad ASC'''
+
+        ciudades = self.run_Query(query, (departamento_seleccionado,))
+        return [ciu[0] for ciu in ciudades]
         
     def adiciona_Registro(self, event=None):
         '''Adiciona un participante a la BD si la validación es True'''
-    
         id_participante = self.entryId.get().strip()
 
         if not id_participante:
             mssg.showerror("¡Atención!", "No puede dejar la identificación vacía")
             return
-
         # Verificar si el ID/NIT ya existe en la BD
         query_check = "SELECT COUNT(*) FROM t_participantes WHERE Id = ?"
         resultado = self.run_Query(query_check, (id_participante,))
@@ -323,6 +373,9 @@ class Participantes:
             self.entryId.configure(state="readonly")  # Bloquear edición del ID
             return
 
+        departamento = self.boxDepartamento.get()
+        ciudad = self.boxCiudad.get()
+        departamento_ciudad = f"{departamento}/{ciudad}"
 
         if self.actualiza:
             self.actualiza = None
@@ -332,11 +385,13 @@ class Participantes:
                     SET Nombre = ?, Direccion = ?, Celular = ?, Entidad = ?, Fecha = ?, Ciudad = ? 
                     WHERE Id = ?'''
             parametros = (self.entryNombre.get(), self.entryDireccion.get(), self.entryCelular.get(),
-                        self.entryEntidad.get(), self.entryFecha.get(), self.entryCiudad.get(),
+                        self.entryEntidad.get(), self.entryFecha.get(), departamento_ciudad,
                         id_participante)
 
             self.run_Query(query, parametros)
             mssg.showinfo('Éxito', 'Registro actualizado con éxito')
+            self.actualiza = False
+            self.limpia_Campos()
 
         else:
             if not self.valida():
@@ -347,7 +402,7 @@ class Participantes:
                     VALUES (?, ?, ?, ?, ?, ?, ?)'''
             parametros = (self.entryId.get(), self.entryNombre.get(), self.entryDireccion.get(),
                         self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get(), 
-                        self.entryCiudad.get())
+                        departamento_ciudad)
 
             self.run_Query(query, parametros)
 
@@ -359,7 +414,7 @@ class Participantes:
 
         # Limpiar los campos SOLO AL FINAL
         self.limpia_Campos()
-
+        self.mostrar_departamento()
 
     def edita_tablaTreeView(self, event=None):
         if self.actualiza:
@@ -373,12 +428,16 @@ class Participantes:
             celular_editado = self.entryCelular.get()
             entidad_editado = self.entryEntidad.get()
             fecha_editado = self.entryFecha.get()
-            ciudad_editada = self.entryCiudad.get()
+            departamento = self.boxDepartamento.get()
+            ciudad = self.boxCiudad.get()
+            departamento_ciudad = f"{departamento}/{ciudad}"
             self.treeDatos.item(seleccionar, text=id, 
-                            values=(nombre_editado, direccion_editado, celular_editado, entidad_editado, fecha_editado, ciudad_editada))
+                            values=(nombre_editado, direccion_editado, celular_editado, entidad_editado, fecha_editado, departamento_ciudad))
             
             mssg.showinfo("Exito",'Fila actualizada correctamente')
             self.actualiza = False
+            self.limpia_Campos()
+            self.mostrar_departamento()
             return 
         
         # Carga los campos desde la tabla TreeView
@@ -393,7 +452,10 @@ class Participantes:
         self.entryCelular.insert(0, self.treeDatos.item(seleccionar)['values'][2])
         self.entryEntidad.insert(0, self.treeDatos.item(seleccionar)['values'][3])
         self.entryFecha.insert(0, self.treeDatos.item(seleccionar)['values'][4])
-        self.entryCiudad.insert(0, self.treeDatos.item(seleccionar)['values'][5])
+        departamento_ciudad = self.treeDatos.item(seleccionar)['values'][5]
+        departamento, ciudad = departamento_ciudad.split("/")
+        self.boxDepartamento.set(departamento)
+        self.boxCiudad.set(ciudad)
         self.actualiza = True # Esta variable contro la actualización
         
     def elimina_Registro(self, event=None):
@@ -409,6 +471,7 @@ class Participantes:
                 self.run_Query(query)
                 self.lee_tablaTreeView()
                 mssg.showinfo("Éxito", "Se eliminaron todos los registros correctamente.")
+            self.mostrar_departamento()
             return
 
         confirmacion = mssg.askyesno("Confirmación", f"¿Está seguro de que desea eliminar {len(seleccionados)} registro(s)?")
@@ -423,7 +486,7 @@ class Participantes:
             self.treeDatos.delete(item)  # Elimina el registro de la tabla visual
 
         mssg.showinfo("Éxito", f"Se eliminaron {len(seleccionados)} registro(s) correctamente.")
-
+        self.mostrar_departamento()
 
     def consulta_Registro(self, event=None):
         '''Consulta un participante por su Id y lo resalta en la tabla'''
