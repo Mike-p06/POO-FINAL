@@ -376,8 +376,12 @@ class Participantes:
             self.entryId.configure(state="readonly")  # Bloquear edición del ID
             return
 
-        departamento = self.boxDepartamento.get()
-        ciudad = self.boxCiudad.get()
+        departamento = self.boxDepartamento.get().strip()
+        ciudad = self.boxCiudad.get().strip()
+        if not departamento:
+            departamento = self.departamentos[0]
+        if not ciudad:
+            ciudad = self.ciudades[0] if self.ciudades else ""
         departamento_ciudad = f"{departamento}/{ciudad}"
 
         if self.actualiza:
