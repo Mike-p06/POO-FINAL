@@ -4,284 +4,313 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox as mssg
 import sqlite3
-import os 
+import os
 from tkcalendar import DateEntry
 import datetime
 
 class Participantes:
-    # nombre de la base de datos  y ruta 
     path = os.path.dirname(os.path.abspath(__file__))
     db_name = os.path.join(path, 'Participantes.db')
     actualiza = None
+    
     def __init__(self, master=None):
-        # Top Level - Ventana Principal
+        # ---------------- VENTANA PRINCIPAL ----------------
         self.win = tk.Tk() if master is None else tk.Toplevel()
-        
-             
-        #Top Level - Configuración
-        self.win.configure(background="#d9f0f9", height= 480, relief="flat", width= 1024 )
+        self.win.configure(background="#1A1A1A", height=480, relief="flat", width=1024)
         self.win.geometry("1024x480")
-        self.icon_path = self.path +r'/icono.ico'
+        self.icon_path = self.path + r'/icono.ico'
         self.win.iconbitmap(self.icon_path)
         self.win.resizable(False, False)
         self.win.title("Conferencia MACSS y la Ingenería de Requerimientos")
-        self.win.pack_propagate(0) 
+        self.win.pack_propagate(0)
         
-        # Main widget
         self.mainwindow = self.win
         
-        #Label Frame
-        self.lblfrm_Datos = tk.LabelFrame(self.win, width= 600 , height= 200, labelanchor= "n", 
-                                          font= ("Helvetica", 13,"bold"))
-        #Label Id
-        self.lblId = ttk.Label(self.lblfrm_Datos)
-        self.lblId.configure(anchor="e", font="TkTextFont", justify="left", text="Idenficación")
-        self.lblId.configure(width="12")
-        self.lblId.grid(column="0", padx="5", pady="15", row="0", sticky="w")
+        # ---------------- ESTILOS DE INTERFAZ ----------------
+        self.style = ttk.Style(self.win)
+        self.style.theme_use("clam")
         
-        #Entry Id
-        self.entryId = tk.Entry(self.lblfrm_Datos)
-        self.entryId.configure(exportselection="false", justify="left",relief="groove", takefocus=True, width="30")
-        self.entryId.grid(column="1", row="0", sticky="w")
+        # Fondo y letra de LabelFrame y TLabel
+        self.style.configure("TLabel",
+                             background="#2E2E2E",
+                             foreground="#EAEAEA",
+                             font=("Times New Roman", 11))
+        
+        # LabelFrame
+        self.style.configure("TLabelframe",
+                             background="#2E2E2E",
+                             bordercolor="#8C8C8C")
+        self.style.configure("TLabelframe.Label",
+                             background="#2E2E2E",
+                             foreground="#EAEAEA",
+                             font=("Times New Roman", 12, "bold"))
+        
+        # Treeview oscuro
+        self.style.configure("estilo.Treeview",
+                             highlightthickness=0, bd=0,
+                             background="#2E2E2E",
+                             fieldbackground="#2E2E2E",
+                             foreground="#FFFFFF",
+                             font=("Times New Roman", 11))
+        # Encabezados de la tabla
+        self.style.configure("estilo.Treeview.Heading",
+                             background="#3C3C3C",
+                             foreground="#F0F0F0",
+                             font=("Times New Roman", 12, "bold"))
+        
+        # ---------------- SECCIÓN DE INSCRIPCIÓN (más ancha) ----------------
+        # Aumentamos el ancho de 350 a 420
+        self.lblfrm_Datos = ttk.LabelFrame(
+            self.win, text=" Inscripción ", style="TLabelframe",
+            width=420, height=420, labelanchor="n"
+        )
+        self.lblfrm_Datos.place(x=20, y=20)
+        
+        # Identificación
+        self.lblId = ttk.Label(self.lblfrm_Datos, text="Identificación", anchor="e")
+        self.lblId.grid(column=0, row=0, padx=5, pady=10, sticky="w")
+        self.entryId = tk.Entry(self.lblfrm_Datos, width=30, bg="#3C3C3C", fg="#FFFFFF",
+                                insertbackground="#FFFFFF", relief="groove")
+        self.entryId.grid(column=1, row=0, sticky="w")
         self.entryId.bind("<Key>", self.valida_Identificacion)
         
-        
-        #Label Nombre
-        self.lblNombre = ttk.Label(self.lblfrm_Datos)
-        self.lblNombre.configure(anchor="e", font="TkTextFont", justify="left", text="Nombre")
-        self.lblNombre.configure(width="12")
-        self.lblNombre.grid(column="0", padx="5", pady="15", row="1", sticky="w")
-        
-        #Entry Nombre
-        self.entryNombre = tk.Entry(self.lblfrm_Datos)
-        self.entryNombre.configure(exportselection="true", justify="left",relief="groove", width="30")
-        self.entryNombre.grid(column="1", row="1", sticky="w")
+        # Nombre
+        self.lblNombre = ttk.Label(self.lblfrm_Datos, text="Nombre", anchor="e")
+        self.lblNombre.grid(column=0, row=1, padx=5, pady=10, sticky="w")
+        self.entryNombre = tk.Entry(self.lblfrm_Datos, width=30, bg="#3C3C3C", fg="#FFFFFF",
+                                    insertbackground="#FFFFFF", relief="groove")
+        self.entryNombre.grid(column=1, row=1, sticky="w")
         self.entryNombre.bind("<Key>", self.valida_Nombre)
-        #Label Direccion
-        self.lblDireccion = ttk.Label(self.lblfrm_Datos)
-        self.lblDireccion.configure(anchor="e", font="TkTextFont", justify="left", text="Dirección")
-        self.lblDireccion.configure(width="12")
-        self.lblDireccion.grid(column="0", padx="5", pady="15", row="2", sticky="w")
         
-        #Entry Direccion
-        self.entryDireccion = tk.Entry(self.lblfrm_Datos)
-        self.entryDireccion.configure(exportselection="true", justify="left",relief="groove", width="30")
-        self.entryDireccion.grid(column="1", row="2", sticky="w")
+        # Dirección
+        self.lblDireccion = ttk.Label(self.lblfrm_Datos, text="Dirección", anchor="e")
+        self.lblDireccion.grid(column=0, row=2, padx=5, pady=10, sticky="w")
+        self.entryDireccion = tk.Entry(self.lblfrm_Datos, width=30, bg="#3C3C3C", fg="#FFFFFF",
+                                       insertbackground="#FFFFFF", relief="groove")
+        self.entryDireccion.grid(column=1, row=2, sticky="w")
         
-        #Label Celular
-        self.lblCelular = ttk.Label(self.lblfrm_Datos)
-        self.lblCelular.configure(anchor="e", font="TkTextFont", justify="left", text="Celular")
-        self.lblCelular.configure(width="12")
-        self.lblCelular.grid(column="0", padx="5", pady="15", row="3", sticky="w")
-        
-        #Entry Celular
-        self.entryCelular = tk.Entry(self.lblfrm_Datos)
-        self.entryCelular.configure(exportselection="false", justify="left",relief="groove", width="30")
-        self.entryCelular.grid(column="1", row="3", sticky="w")
+        # Celular
+        self.lblCelular = ttk.Label(self.lblfrm_Datos, text="Celular", anchor="e")
+        self.lblCelular.grid(column=0, row=3, padx=5, pady=10, sticky="w")
+        self.entryCelular = tk.Entry(self.lblfrm_Datos, width=30, bg="#3C3C3C", fg="#FFFFFF",
+                                     insertbackground="#FFFFFF", relief="groove")
+        self.entryCelular.grid(column=1, row=3, sticky="w")
         self.entryCelular.bind("<Key>", self.valida_Celular)
         
-        #Label Entidad
-        self.lblEntidad = ttk.Label(self.lblfrm_Datos)
-        self.lblEntidad.configure(anchor="e", font="TkTextFont", justify="left", text="Entidad")
-        self.lblEntidad.configure(width="12")
-        self.lblEntidad.grid(column="0", padx="5", pady="15", row="4", sticky="w")
+        # Entidad
+        self.lblEntidad = ttk.Label(self.lblfrm_Datos, text="Entidad", anchor="e")
+        self.lblEntidad.grid(column=0, row=4, padx=5, pady=10, sticky="w")
+        self.entryEntidad = tk.Entry(self.lblfrm_Datos, width=30, bg="#3C3C3C", fg="#FFFFFF",
+                                     insertbackground="#FFFFFF", relief="groove")
+        self.entryEntidad.grid(column=1, row=4, sticky="w")
         
-        #Entry Entidad
-        self.entryEntidad = tk.Entry(self.lblfrm_Datos)
-        self.entryEntidad.configure(exportselection="true", justify="left",relief="groove", width="30")
-        self.entryEntidad.grid(column="1", row="4", sticky="w")
+        # Fecha
+        self.lblFecha = ttk.Label(self.lblfrm_Datos, text="Fecha", anchor="e")
+        self.lblFecha.grid(column=0, row=5, padx=5, pady=10, sticky="w")
+        self.entryFecha = tk.Entry(self.lblfrm_Datos, width=30, bg="#3C3C3C", fg="#FFFFFF",
+                                   insertbackground="#FFFFFF", relief="groove")
+        self.entryFecha.grid(column=1, row=5, sticky="w")
         
-        #Label Fecha
-        self.lblFecha = ttk.Label(self.lblfrm_Datos)
-        self.lblFecha.configure(anchor="e", font="TkTextFont", justify="left", text="Fecha")
-        self.lblFecha.configure(width="12")
-        self.lblFecha.grid(column="0", padx="5", pady="15", row="5", sticky="w")
-        
-        #Entry Fecha
-        self.entryFecha = tk.Entry(self.lblfrm_Datos)
-        self.entryFecha.configure(exportselection="true", justify="left",relief="groove", width="30")
-        self.entryFecha.grid(column="1", row="5", sticky="w")
-        self.valida_Fecha()
-
-
+        # Departamentos / Ciudades
         self.departamentos = self.traer_departamentos()
         self.ciudades = self.traer_ciudades(self.departamentos[0])
-
-
-        #Label Ciudad
-        self.lblCiudad = ttk.Label(self.lblfrm_Datos)
-        self.lblCiudad.configure(anchor="e", font="TkTextFont", justify="left", text="Ciudad")
-        self.lblCiudad.configure(width="12")
-        self.lblCiudad.grid(column="0", padx="5", pady="15", row="6", sticky="w")
-
-        #Entry Ciudad
-        self.entryCiudad = tk.Entry(self.lblfrm_Datos)
-        self.entryCiudad.configure(exportselection="false", justify="left",relief="groove", width="30")
-
-    
-        #Box Departamento
+        
+        self.lblCiudad = ttk.Label(self.lblfrm_Datos, text="Ciudad", anchor="e")
+        self.lblCiudad.grid(column=0, row=6, padx=5, pady=10, sticky="w")
+        
         self.boxDepartamento = ttk.Combobox(self.lblfrm_Datos, values=self.departamentos, state="readonly")
-        self.boxDepartamento.grid(column="1", row="6", sticky="w")
+        self.boxDepartamento.grid(column=1, row=6, sticky="w")
         self.boxDepartamento.set(self.departamentos[0])
         self.boxDepartamento.bind("<<ComboboxSelected>>", self.actualizar_ciudades)
         
-        #Box Ciudad
         self.boxCiudad = ttk.Combobox(self.lblfrm_Datos, values=self.ciudades, state="readonly")
-        self.boxCiudad.grid(column="1", row="7", sticky="w")
-        #self.boxCiudad.set(self.ciudades[0])
-        self.boxCiudad.grid_remove()
-          
-        #Configuración del Labe Frame    
-        self.lblfrm_Datos.configure(height="360", relief="groove", text=" Inscripción ", width="330")
-        self.lblfrm_Datos.place(anchor="nw", relx="0.01", rely="0.1", width="280", x="0", y="0")
-        self.lblfrm_Datos.grid_propagate(0)
+        self.boxCiudad.grid(column=1, row=7, sticky="w")
         
-
-        #Botón Grabar
-        self.btnGrabar = ttk.Button(self.win)
-        self.btnGrabar.configure(state="normal", text="Grabar", width="9")
-        self.btnGrabar.place(anchor="nw", relx="0.01", rely="0.86", x="0", y="0")
-        self.btnGrabar.bind("<1>", self.adiciona_Registro, add="+")
+        self.valida_Fecha()
         
-        #Botón Editar
-        self.btnEditar = ttk.Button(self.win)        
-        self.btnEditar.configure(text="Editar", width="9")
-        self.btnEditar.place(anchor="nw", rely="0.86", x="80", y="0")
-        self.btnEditar.bind("<1>", self.edita_tablaTreeView, add="+")
+        # ---------------- TREEVIEW (más a la izquierda) ----------------
+        # Lo movemos a x=450 - 20 = 430, para estar más cerca del frame
+        self.treeDatos = ttk.Treeview(self.win, style="estilo.Treeview", selectmode="extended")
+        self.treeDatos["columns"] = ("Nombre", "Dirección", "Celular", "Entidad", "Fecha", "Ciudad")
+        self.treeDatos.column('#0', anchor="w", stretch=True, width=15)
+        self.treeDatos.column('Nombre', stretch=True, width=80)
+        self.treeDatos.column('Dirección', stretch=True, width=80)
+        self.treeDatos.column('Celular', stretch=True, width=40)
+        self.treeDatos.column('Entidad', stretch=True, width=80)
+        self.treeDatos.column('Fecha', stretch=True, width=40)
+        self.treeDatos.column('Ciudad', stretch=True, width=60)
         
-        #Botón Eliminar
-        self.btnEliminar = ttk.Button(self.win)
-        self.btnEliminar.configure(text="Eliminar", width="9")
-        self.btnEliminar.place(anchor="nw", rely="0.86", x="152", y="0")
-        self.btnEliminar.bind("<1>", self.elimina_Registro, add="+")
+        self.treeDatos.heading('#0', text='Id')
+        self.treeDatos.heading('Nombre', text='Nombre')
+        self.treeDatos.heading('Dirección', text='Dirección')
+        self.treeDatos.heading('Celular', text='Celular')
+        self.treeDatos.heading('Entidad', text='Entidad')
+        self.treeDatos.heading('Fecha', text='Fecha')
+        self.treeDatos.heading('Ciudad', text='Ciudad')
         
-        #Botón Cancelar
-        self.btnCancelar = ttk.Button(self.win)
-        self.btnCancelar.configure(text="Cancelar", width="9",command = self.limpia_Campos)
-        self.btnCancelar.place(anchor="nw", rely="0.86", x="225", y="0")
-        self.btnCancelar.bind("<1>", self.limpia_Campos, add="+")
-
-        #Botón Consultar
-        self.btnConsultar = ttk.Button(self.win)
-        self.btnConsultar.configure(text="Consultar", width="9")
-        self.btnConsultar.place(anchor="nw", rely="0.86", x="120", y="30")
-        self.btnConsultar.bind("<1>", self.consulta_Registro, add="+")
-    
-
-        #tablaTreeView
-        self.style=ttk.Style()
-        self.style.configure("estilo.Treeview", highlightthickness=0, bd=0, background='AliceBlue', font=('Calibri Light',10))
-        self.style.configure("estilo.Treeview.Heading", background='Azure', font=('Calibri Light', 10,'bold')) 
-        self.style.layout("estilo.Treeview", [('estilo.Treeview.treearea', {'sticky': 'nswe'})])
-
-        self.treeDatos = ttk.Treeview(self.win, height = 10, style="estilo.Treeview", selectmode="extended")
-        self.treeDatos.place(x=380, y=10, height=340, width = 500)
-
-       # Etiquetas de las columnas
-        self.treeDatos["columns"]=("Nombre","Dirección","Celular","Entidad","Fecha","Ciudad")
-        # Determina el espacio a mostrar que ocupa el código
-        self.treeDatos.column('#0',         anchor="w", stretch="true", width=15)
-        self.treeDatos.column('Nombre',     stretch="true",             width=60)
-        self.treeDatos.column('Dirección',  stretch="true",             width=60)
-        self.treeDatos.column('Celular',    stretch="true",             width=16)
-        self.treeDatos.column('Entidad',    stretch="true",             width=60)
-        self.treeDatos.column('Fecha',      stretch="true",             width=12) 
-        self.treeDatos.column('Ciudad',      stretch="true",             width=50) 
-
-       #Encabezados de las columnas de la pantalla
-        self.treeDatos.heading('#0',       text = 'Id')
-        self.treeDatos.heading('Nombre',   text = 'Nombre')
-        self.treeDatos.heading('Dirección',text = 'Dirección')
-        self.treeDatos.heading('Celular',  text = 'Celular')
-        self.treeDatos.heading('Entidad',  text = 'Entidad')
-        self.treeDatos.heading('Fecha',    text = 'Fecha')
-        self.treeDatos.heading('Ciudad',    text = 'Ciudad')
-
-        #Scrollbar en el eje Y de treeDatos
-        self.scrollbar=ttk.Scrollbar(self.win, orient='vertical', command=self.treeDatos.yview)
+        # Ubicado a x=430, y=20, un poco más a la izquierda
+        self.treeDatos.place(x=430, y=20, width=550, height=400)
+        
+        self.scrollbar = ttk.Scrollbar(self.win, orient='vertical', command=self.treeDatos.yview)
         self.treeDatos.configure(yscroll=self.scrollbar.set)
-        self.scrollbar.place(x=1000, y=50, height=400)
+        
+        # Ajustamos la scrollbar según el nuevo ancho (x=980)
+        self.scrollbar.place(x=980, y=20, height=400)
+        
+        self.lee_tablaTreeView()
+        
+        # ---------------- BOTONES CURVOS (SIN SUPERPONER EL TREEVIEW) ----------------
+        # Los colocamos más abajo y fuera del área del TreeView
+        self.canvas_botones = tk.Canvas(self.win, width=600, height=50, highlightthickness=0, bg="#1A1A1A")
+        # y=425 (debajo del TreeView de altura 400) => no lo tapa
+        self.canvas_botones.place(x=20, y=425)
+        
+        # Parámetros de color y tamaño
+        self.normal_color = "#3C3C3C"
+        self.hover_color = "#5C5C5C"
+        self.text_color = "#EAEAEA"
+        self.shadow_color = "#121212"
+        
+        self.ancho_btn = 70
+        self.alto_btn = 35
+        self.radio_btn = self.alto_btn // 2
+        self.offset_sombra = 3
+        
+        self.botones = {}
+        
+        self._crear_boton("Grabar",    0,   0)
+        self._crear_boton("Editar",    80,  0)
+        self._crear_boton("Eliminar",  160, 0)
+        self._crear_boton("Consultar", 240, 0)
+        self._crear_boton("Cancelar",  320, 0)
+    
+    # ---------------- BOTONES CURVOS (ELÍPTICOS) ----------------
+    def _crear_boton(self, texto, x, y):
+        """Crea un botón con forma curvada, con sombra 3D y hover."""
+        # 1) Sombra 3D
+        sombra_izq = self.canvas_botones.create_oval(
+            x + self.offset_sombra, y + self.offset_sombra,
+            x + self.radio_btn * 2 + self.offset_sombra, y + self.radio_btn * 2 + self.offset_sombra,
+            fill=self.shadow_color, outline=""
+        )
+        sombra_der = self.canvas_botones.create_oval(
+            x + self.ancho_btn - self.radio_btn * 2 + self.offset_sombra, y + self.offset_sombra,
+            x + self.ancho_btn + self.offset_sombra, y + self.radio_btn * 2 + self.offset_sombra,
+            fill=self.shadow_color, outline=""
+        )
+        sombra_centro = self.canvas_botones.create_rectangle(
+            x + self.radio_btn + self.offset_sombra, y + self.offset_sombra,
+            x + self.ancho_btn - self.radio_btn + self.offset_sombra, y + self.alto_btn + self.offset_sombra,
+            fill=self.shadow_color, outline=""
+        )
+        
+        # 2) Botón principal
+        lado_izq = self.canvas_botones.create_oval(
+            x, y,
+            x + self.radio_btn * 2, y + self.radio_btn * 2,
+            fill=self.normal_color, outline=""
+        )
+        lado_der = self.canvas_botones.create_oval(
+            x + self.ancho_btn - self.radio_btn * 2, y,
+            x + self.ancho_btn, y + self.radio_btn * 2,
+            fill=self.normal_color, outline=""
+        )
+        centro = self.canvas_botones.create_rectangle(
+            x + self.radio_btn, y,
+            x + self.ancho_btn - self.radio_btn, y + self.alto_btn,
+            fill=self.normal_color, outline=""
+        )
+        
+        # 3) Texto
+        texto_obj = self.canvas_botones.create_text(
+            x + self.ancho_btn // 2, y + self.alto_btn // 2,
+            text=texto, fill=self.text_color, font=("Times New Roman", 10, "bold")
+        )
+        
+        self.botones[texto] = {"partes": [lado_izq, lado_der, centro], "texto": texto_obj}
+        
+        def on_enter(event, bot=texto):
+            for parte in self.botones[bot]["partes"]:
+                self.canvas_botones.itemconfig(parte, fill=self.hover_color)
+        def on_leave(event, bot=texto):
+            for parte in self.botones[bot]["partes"]:
+                self.canvas_botones.itemconfig(parte, fill=self.normal_color)
+        def on_click(event, bot=texto):
+            self._boton_click(bot, event)
+        
+        for parte in self.botones[texto]["partes"]:
+            self.canvas_botones.tag_bind(parte, "<Enter>", on_enter)
+            self.canvas_botones.tag_bind(parte, "<Leave>", on_leave)
+            self.canvas_botones.tag_bind(parte, "<Button-1>", on_click)
+        self.canvas_botones.tag_bind(texto_obj, "<Enter>", on_enter)
+        self.canvas_botones.tag_bind(texto_obj, "<Leave>", on_leave)
+        self.canvas_botones.tag_bind(texto_obj, "<Button-1>", on_click)
+    
+    def _boton_click(self, boton, event):
+        """Invoca la función correspondiente según el botón clickeado."""
+        if boton == "Grabar":
+            self.adiciona_Registro(event)
+        elif boton == "Editar":
+            self.edita_tablaTreeView(event)
+        elif boton == "Eliminar":
+            self.elimina_Registro(event)
+        elif boton == "Consultar":
+            self.consulta_Registro(event)
+        elif boton == "Cancelar":
+            self.limpia_Campos(event)
 
-        #Carga los datos en treeDatos
-        self.lee_tablaTreeView()    
-        self.treeDatos.place(anchor="nw", height="400", rely="0.1", width="700", x="300", y="0")
- 
-   
+    # ---------------- LÓGICA ORIGINAL (SIN CAMBIOS) ----------------
     def valida(self):
-        '''Valida que el Id no esté vacio, devuelve True si ok'''
-        return (len(self.entryId.get()) != 0 )   
-
+        return len(self.entryId.get()) != 0
+    
     def run(self):
         self.mainwindow.mainloop()
-
-    def valida_Identificacion(self, event=None):
-     '''Permite solo números y muestra un mensaje si supera 15 caracteres'''
-     id_text = self.entryId.get()
-
-     if not event.char.isdigit() and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
-        return "break"  # Bloquea caracteres no numéricos
-
-     if len(id_text) >= 15 and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
-        mssg.showwarning("Advertencia", "La identificación no puede superar los 15 caracteres.")
-        self.entryId.after(1, lambda: self.entryId.delete(15, "end"))  # Elimina el carácter extra
-        return "break"
-
-    def valida_Celular(self, event=None):
-     '''Permite solo números y máximo 10 caracteres en el campo de celular'''
-     celular_text = self.entryCelular.get()
     
-     if not event.char.isdigit() and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
-        return "break"  # Bloquea la entrada de caracteres no numéricos
-
-     if len(celular_text) >= 10 and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
-        return "break"  # Evita que supere los 10 caracteres
+    def valida_Identificacion(self, event=None):
+        id_text = self.entryId.get()
+        if not event.char.isdigit() and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
+            return "break"
+        if len(id_text) >= 15 and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
+            mssg.showwarning("Advertencia", "La identificación no puede superar los 15 caracteres.")
+            self.entryId.after(1, lambda: self.entryId.delete(15, "end"))
+            return "break"
+    
+    def valida_Celular(self, event=None):
+        celular_text = self.entryCelular.get()
+        if not event.char.isdigit() and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
+            return "break"
+        if len(celular_text) >= 10 and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
+            return "break"
     
     def valida_Nombre(self, event=None):
-        '''Permite solo letras y espacios en el campo de Nombre'''
         if not event.char.isalpha() and event.char != " " and event.keysym not in ("BackSpace", "Delete", "Left", "Right"):
-            return "break"  # Bloquea números y caracteres especiales
-            
-    def valida_Fecha(self, event=None):
-     '''Configura el campo de fecha para no permitir fechas futuras ni pasadas, solo del año actual'''
-     today = datetime.date.today()  # Obtiene la fecha actual
-     first_day_of_year = datetime.date(2024, 1, 1) 
-
-     # Si ya existe el campo, lo eliminamos
-     if hasattr(self, "entryFecha"):
-        self.entryFecha.destroy()
-
-     # Creamos el nuevo campo de fecha con restricción de fechas futuras y pasadas
-     self.entryFecha = DateEntry(self.lblfrm_Datos, 
-                                date_pattern="dd/MM/yyyy", 
-                                background="DarkCyan",
-                                foreground="black", 
-                                borderwidth=2, 
-                                maxdate=today,  # Restringe la selección hasta hoy
-                                mindate=first_day_of_year)  # Restringe la selección desde el primer día del año
-     self.entryFecha.grid(column="1", row="5", sticky="w")
+            return "break"
     
-
+    def valida_Fecha(self, event=None):
+        today = datetime.date.today()
+        first_day_of_year = datetime.date(2024, 1, 1)
+        if hasattr(self, "entryFecha"):
+            self.entryFecha.destroy()
+        self.entryFecha = DateEntry(
+            self.lblfrm_Datos, date_pattern="dd/MM/yyyy",
+            background="DarkCyan", foreground="black", borderwidth=2,
+            maxdate=today, mindate=first_day_of_year
+        )
+        self.entryFecha.grid(column=1, row=5, sticky="w")
+    
     def carga_Datos(self):
-        ''' Carga los datos en los campos desde el treeView'''
-        self.entryId.insert(0,self.treeDatos.item(self.treeDatos.selection())['text'])
-        self.entryId.configure(state = 'readonly')
-        self.entryNombre.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][0])
-        self.entryDireccion.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][1])
-        self.entryCelular.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][2])
-        self.entryEntidad.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][3])
-        self.entryFecha.insert(0,self.treeDatos.item(self.treeDatos.selection())['values'][4])
+        self.entryId.insert(0, self.treeDatos.item(self.treeDatos.selection())['text'])
+        self.entryId.configure(state='readonly')
+        self.entryNombre.insert(0, self.treeDatos.item(self.treeDatos.selection())['values'][0])
+        self.entryDireccion.insert(0, self.treeDatos.item(self.treeDatos.selection())['values'][1])
+        self.entryCelular.insert(0, self.treeDatos.item(self.treeDatos.selection())['values'][2])
+        self.entryEntidad.insert(0, self.treeDatos.item(self.treeDatos.selection())['values'][3])
+        self.entryFecha.insert(0, self.treeDatos.item(self.treeDatos.selection())['values'][4])
         self.boxCiudad.set(self.treeDatos.item(self.treeDatos.selection())['values'][5])
-              
-
+    
     def limpia_Campos(self, event=None):
-        '''Cancela cualquier acción en curso y limpia todos los campos de entrada'''
-
-        self.actualiza = None  
-
-        # Habilitar el campo ID por si estaba en modo de solo lectura
+        self.actualiza = None
         self.entryId.configure(state='normal')
-
-        # Limpiar todos los campos de entrada
         self.entryId.delete(0, tk.END)
         self.entryNombre.delete(0, tk.END)
         self.entryDireccion.delete(0, tk.END)
@@ -289,93 +318,72 @@ class Participantes:
         self.entryEntidad.delete(0, tk.END)
         self.entryFecha.delete(0, tk.END)
         self.boxDepartamento.set(self.departamentos[0])
-        # Mostrar ciudades y fecha desde 0 
         self.actualizar_ciudades()
         self.mostrar_departamento()
         self.valida_Fecha()
-
-
-        # Desseleccionar cualquier elemento en la tabla
         for item in self.treeDatos.selection():
             self.treeDatos.selection_remove(item)
-        
+    
     def run_Query(self, query, parametros=()):
-        ''' Función para ejecutar los Querys a la base de datos '''
         with sqlite3.connect(self.db_name) as conn:
             cursor = conn.cursor()
             try:
                 result = cursor.execute(query, parametros)
                 conn.commit()
-                return result.fetchall()  # Asegura de que se obtengan todos los resultados
+                return result.fetchall()
             except sqlite3.OperationalError as e:
                 print(f"Error en la consulta: {e}")
                 mssg.showerror("Error", f"Ha ocurrido un error en la base de datos: {e}")
                 return []
-            
-
-
+    
     def lee_tablaTreeView(self):
-        ''' Carga los datos de la BD y Limpia la Tabla tablaTreeView '''
-        tabla_TreeView = self.treeDatos.get_children()
-        for linea in tabla_TreeView:
+        for linea in self.treeDatos.get_children():
             self.treeDatos.delete(linea)
-        # Seleccionando los datos de la BD
         query = 'SELECT * FROM t_participantes ORDER BY Id DESC'
         db_rows = self.run_Query(query)
-        # Insertando los datos de la BD en la tabla de la pantalla
         for row in db_rows:
-            self.treeDatos.insert('',0, text = row[0], values = [row[1],row[2],row[3],row[4],row[5],row[6]])
-            
-
+            self.treeDatos.insert('', 0, text=row[0], values=[row[1], row[2], row[3], row[4], row[5], row[6]])
+    
     def actualizar_ciudades(self, event=None):
         departamento_seleccionado = self.boxDepartamento.get()
         self.ciudades = self.traer_ciudades(departamento_seleccionado)
         self.boxCiudad['values'] = self.ciudades
         if self.ciudades:
             self.boxCiudad.set(self.ciudades[0])
-        self.boxDepartamento.grid_remove()
-        self.boxCiudad.grid(column="1", row="6", sticky="w")
-        
+    
     def mostrar_departamento(self):
-        self.boxDepartamento.grid(column="1", row="6", sticky="w")
-        self.boxCiudad.grid_remove()
+        self.boxDepartamento.grid(column=1, row=6, sticky="w")
+        self.boxCiudad.grid(column=1, row=7, sticky="w")
         self.boxDepartamento.set(self.departamentos[0])
         self.boxCiudad.set(self.ciudades[0])
     
     def traer_departamentos(self):
         query = '''SELECT Nombre_Departamento
-        FROM t_ciudades
-        GROUP BY Nombre_Departamento
-        ORDER BY Nombre_Departamento ASC'''
-
+                   FROM t_ciudades
+                   GROUP BY Nombre_Departamento
+                   ORDER BY Nombre_Departamento ASC'''
         departamentos = self.run_Query(query)
         return [dep[0] for dep in departamentos]
-
+    
     def traer_ciudades(self, departamento_seleccionado):
         query = '''SELECT Nombre_Ciudad
-        FROM t_ciudades
-        WHERE Nombre_Departamento = ?
-        ORDER BY Nombre_Ciudad ASC'''
-
+                   FROM t_ciudades
+                   WHERE Nombre_Departamento = ?
+                   ORDER BY Nombre_Ciudad ASC'''
         ciudades = self.run_Query(query, (departamento_seleccionado,))
         return [ciu[0] for ciu in ciudades]
-        
+    
     def adiciona_Registro(self, event=None):
-        '''Adiciona un participante a la BD si la validación es True'''
         id_participante = self.entryId.get().strip()
-
         if not id_participante:
             mssg.showerror("¡Atención!", "No puede dejar la identificación vacía")
             return
-        # Verificar si el ID ya existe en la base de datos
         query_check = "SELECT COUNT(*) FROM t_participantes WHERE Id = ?"
         resultado = self.run_Query(query_check, (id_participante,))
-
-        if resultado[0][0] > 0:  # El ID ya existe en la base de datos
+        if resultado and resultado[0][0] > 0:
             mssg.showerror("Error", f"El participante con ID '{id_participante}' ya existe.")
-            self.entryId.configure(state="readonly")  # Bloquear edición del ID
+            self.entryId.configure(state="readonly")
             return
-
         departamento = self.boxDepartamento.get().strip()
         ciudad = self.boxCiudad.get().strip()
         if not departamento:
@@ -383,53 +391,46 @@ class Participantes:
         if not ciudad:
             ciudad = self.ciudades[0] if self.ciudades else ""
         departamento_ciudad = f"{departamento}/{ciudad}"
-
+        
         if self.actualiza:
             self.actualiza = None
             self.entryId.configure(state='readonly')
-
             query = '''UPDATE t_participantes 
                     SET Nombre = ?, Direccion = ?, Celular = ?, Entidad = ?, Fecha = ?, Ciudad = ? 
                     WHERE Id = ?'''
-            parametros = (self.entryNombre.get(), self.entryDireccion.get(), self.entryCelular.get(),
-                        self.entryEntidad.get(), self.entryFecha.get(), departamento_ciudad,
-                        id_participante)
-
+            parametros = (
+                self.entryNombre.get(), self.entryDireccion.get(), self.entryCelular.get(),
+                self.entryEntidad.get(), self.entryFecha.get(), departamento_ciudad,
+                id_participante
+            )
             self.run_Query(query, parametros)
             mssg.showinfo('Éxito', 'Registro actualizado con éxito')
             self.actualiza = False
             self.limpia_Campos()
-
         else:
             if not self.valida():
                 mssg.showerror("¡Atención!", "No puede dejar la identificación vacía")
                 return
-
             query = '''INSERT INTO t_participantes (Id, Nombre, Direccion, Celular, Entidad, Fecha, Ciudad) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)'''
-            parametros = (self.entryId.get(), self.entryNombre.get(), self.entryDireccion.get(),
-                        self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get(), 
-                        departamento_ciudad)
-
+            parametros = (
+                self.entryId.get(), self.entryNombre.get(), self.entryDireccion.get(),
+                self.entryCelular.get(), self.entryEntidad.get(), self.entryFecha.get(),
+                departamento_ciudad
+            )
             self.run_Query(query, parametros)
-
-            # Actualizar la tabla
             self.lee_tablaTreeView()
-
-            # Mostrar mensaje con el ID correcto
             mssg.showinfo('Éxito', f'Registro {id_participante} agregado correctamente')
-
-        # Limpiar los campos SOLO AL FINAL
         self.limpia_Campos()
         self.mostrar_departamento()
-
+    
     def edita_tablaTreeView(self, event=None):
         if self.actualiza:
             seleccionar = self.treeDatos.selection()
             if not seleccionar:
-                mssg.showerror("¡Atención!",'Por favor seleccionar una fila de la tabala para su edición')
+                mssg.showerror("¡Atención!", 'Por favor seleccionar una fila de la tabla para su edición')
                 return
-            id = self.entryId.get()
+            id_p = self.entryId.get()
             nombre_editado = self.entryNombre.get()
             direccion_editado = self.entryDireccion.get()
             celular_editado = self.entryCelular.get()
@@ -438,16 +439,16 @@ class Participantes:
             departamento = self.boxDepartamento.get()
             ciudad = self.boxCiudad.get()
             departamento_ciudad = f"{departamento}/{ciudad}"
-            self.treeDatos.item(seleccionar, text=id, 
-                            values=(nombre_editado, direccion_editado, celular_editado, entidad_editado, fecha_editado, departamento_ciudad))
-            
-            mssg.showinfo("Exito",'Fila actualizada correctamente')
+            self.treeDatos.item(
+                seleccionar, text=id_p,
+                values=(nombre_editado, direccion_editado, celular_editado, entidad_editado, fecha_editado, departamento_ciudad)
+            )
+            mssg.showinfo("Éxito", 'Fila actualizada correctamente')
             self.actualiza = False
             self.limpia_Campos()
             self.mostrar_departamento()
-            return 
+            return
         
-        # Carga los campos desde la tabla TreeView
         seleccionar = self.treeDatos.selection()
         if not seleccionar:
             mssg.showwarning("Advertencia", "Seleccione una fila para editar.")
@@ -457,7 +458,7 @@ class Participantes:
             return
         
         self.entryId.insert(0, self.treeDatos.item(seleccionar)['text'])
-        self.entryId.configure(state='readonly')  # Hacer que el campo ID sea solo de lectura
+        self.entryId.configure(state='readonly')
         self.entryNombre.insert(0, self.treeDatos.item(seleccionar)['values'][0])
         self.entryDireccion.insert(0, self.treeDatos.item(seleccionar)['values'][1])
         self.entryCelular.insert(0, self.treeDatos.item(seleccionar)['values'][2])
@@ -468,16 +469,17 @@ class Participantes:
         departamento, ciudad = departamento_ciudad.split("/")
         self.boxDepartamento.set(departamento)
         self.boxCiudad.set(ciudad)
+<<<<<<< HEAD
         self.actualiza = True # Esta variable controla actualización
         
+=======
+        self.actualiza = True
+    
+>>>>>>> d383d57 (Actualizacion final)
     def elimina_Registro(self, event=None):
-        '''Elimina uno, varios o todos los participantes con confirmación'''
-
-        seleccionados = self.treeDatos.selection()  # Obtiene los registros seleccionados
-
-        if not seleccionados:  
+        seleccionados = self.treeDatos.selection()
+        if not seleccionados:
             confirmacion = mssg.askyesno("Confirmación", "No ha seleccionado registros. ¿Desea eliminar todos?")
-            
             if confirmacion:
                 query = 'DELETE FROM t_participantes'
                 self.run_Query(query)
@@ -485,57 +487,43 @@ class Participantes:
                 mssg.showinfo("Éxito", "Se eliminaron todos los registros correctamente.")
             self.mostrar_departamento()
             return
-
         confirmacion = mssg.askyesno("Confirmación", f"¿Está seguro de que desea eliminar {len(seleccionados)} registro(s)?")
-
         if not confirmacion:
             return
-
         for item in seleccionados:
             id_participante = self.treeDatos.item(item, "text")
             query = 'DELETE FROM t_participantes WHERE Id = ?'
             self.run_Query(query, (id_participante,))
-            self.treeDatos.delete(item)  # Elimina el registro de la tabla visual
-
+            self.treeDatos.delete(item)
         mssg.showinfo("Éxito", f"Se eliminaron {len(seleccionados)} registro(s) correctamente.")
         self.mostrar_departamento()
-
+    
     def consulta_Registro(self, event=None):
-        '''Consulta un participante por su Id y lo resalta en la tabla'''
-
         id_participante = self.entryId.get().strip()
-
         if not id_participante:
             mssg.showwarning("Advertencia", "Por favor ingrese un ID para consultar.")
             return
-
         query = 'SELECT * FROM t_participantes WHERE Id = ?'
         resultados = self.run_Query(query, (id_participante,))
-
         if resultados:
             encontrado = False
-
-            # Buscar en la tabla si el ID ya está cargado
             for item in self.treeDatos.get_children():
-                id_actual = str(self.treeDatos.item(item, "text"))  # Convertimos a string para evitar errores
-
+                id_actual = str(self.treeDatos.item(item, "text"))
                 if id_actual == id_participante:
-                    self.treeDatos.selection_set(item)  # Selecciona el resultado encontrado
-                    self.treeDatos.focus(item)  # Lleva el foco a la fila encontrada
-                    self.treeDatos.see(item)  # Mueve la vista hacia la fila
+                    self.treeDatos.selection_set(item)
+                    self.treeDatos.focus(item)
+                    self.treeDatos.see(item)
                     encontrado = True
-                    break  
-
-            # Si el participante no está en la tabla, lo agregamos a la vista
+                    break
             if not encontrado:
                 for row in resultados:
-                    self.treeDatos.insert('', 'end', text=row[0], values=(row[1], row[2], row[3], row[4], row[5], row[6]))
+                    self.treeDatos.insert('', 'end', text=row[0],
+                                          values=(row[1], row[2], row[3], row[4], row[5], row[6]))
                 mssg.showinfo("Información", "El participante fue agregado a la tabla.")
         else:
             mssg.showinfo("Información", "No se encontraron datos para el ID ingresado.")
 
 
-
 if __name__ == "__main__":
     app = Participantes()
-    app.run() 
+    app.run()
