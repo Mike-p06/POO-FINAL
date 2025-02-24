@@ -452,6 +452,10 @@ class Participantes:
         if not seleccionar:
             mssg.showwarning("Advertencia", "Seleccione una fila para editar.")
             return
+        if len(seleccionar) > 1:
+            mssg.showwarning("Advertencia", "Por favor, seleccione solo un elemento para editar.")
+            return
+        
         self.entryId.insert(0, self.treeDatos.item(seleccionar)['text'])
         self.entryId.configure(state='readonly')  # Hacer que el campo ID sea solo de lectura
         self.entryNombre.insert(0, self.treeDatos.item(seleccionar)['values'][0])
@@ -464,7 +468,7 @@ class Participantes:
         departamento, ciudad = departamento_ciudad.split("/")
         self.boxDepartamento.set(departamento)
         self.boxCiudad.set(ciudad)
-        self.actualiza = True # Esta variable contro la actualización
+        self.actualiza = True # Esta variable controla actualización
         
     def elimina_Registro(self, event=None):
         '''Elimina uno, varios o todos los participantes con confirmación'''
